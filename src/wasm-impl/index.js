@@ -9,7 +9,7 @@ const BYTES_PER_INT32 = 4
 const BYTES_PER_FLOAT64 = 8
 const BYTES_PER_PAGE = 65_536
 
-const wasmBuffer = await fs.readFile('./held-karp.wasm')
+const wasmBuffer = await fs.readFile(import.meta.resolve('./cycle.wasm'))
 
 export const getCycle = async d => {
   const n = d.length
