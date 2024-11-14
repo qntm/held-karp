@@ -53,13 +53,11 @@
     f64.load
   )
 
-  ;; (don't need a setter for d[u][v])
-
-  (func $get_len_ptr (param $s i32) (param $k i32) (result i32)
-    global.get $shlnminus1
-    local.get $k
-    i32.mul
+  (func $get_len_ptr (param $s i32) (param $u i32) (result i32)
+    global.get $nminus1
     local.get $s
+    i32.mul
+    local.get $u
     i32.add
 
     global.get $BYTES_PER_FLOAT64
@@ -69,24 +67,24 @@
     i32.add
   )
 
-  ;; get len[S][k] from memory address OFFSET + ((2^(N - 1)) * S + k) * 8
-  (func $get_len (param $s i32) (param $k i32) (result f64)
-    (call $get_len_ptr (local.get $s) (local.get $k))
+  ;; get len[S][u] from memory address OFFSET + ((N - 1) * S + u) * 8
+  (func $get_len (param $s i32) (param $u i32) (result f64)
+    (call $get_len_ptr (local.get $s) (local.get $u))
     f64.load
   )
 
-  ;; set len[S][k]
-  (func $set_len (param $s i32) (param $k i32) (param $len f64)
-    (call $get_len_ptr (local.get $s) (local.get $k))
+  ;; set len[S][u]
+  (func $set_len (param $s i32) (param $u i32) (param $len f64)
+    (call $get_len_ptr (local.get $s) (local.get $u))
     local.get $len
     f64.store
   )
 
-  (func $get_prev_ptr (param $s i32) (param $k i32) (result i32)
+  (func $get_prev_ptr (param $s i32) (param $u i32) (result i32)
     global.get $nminus1
     local.get $s
     i32.mul
-    local.get $k
+    local.get $u
     i32.add
 
     global.get $BYTES_PER_INT32
@@ -96,15 +94,15 @@
     i32.add
   )
 
-  ;; get prev[S][k] from memory address OFFSET + ((N - 1) * S + k) * 4
-  (func $get_prev (param $s i32) (param $k i32) (result i32)
-    (call $get_prev_ptr (local.get $s) (local.get $k))
+  ;; get prev[S][u] from memory address OFFSET + ((N - 1) * S + u) * 4
+  (func $get_prev (param $s i32) (param $u i32) (result i32)
+    (call $get_prev_ptr (local.get $s) (local.get $u))
     i32.load
   )
 
-  ;; set prev[S][k]
-  (func $set_prev (param $s i32) (param $k i32) (param $prev i32)
-    (call $get_prev_ptr (local.get $s) (local.get $k))
+  ;; set prev[S][u]
+  (func $set_prev (param $s i32) (param $u i32) (param $prev i32)
+    (call $get_prev_ptr (local.get $s) (local.get $u))
     local.get $prev
     i32.store
   )
@@ -114,146 +112,120 @@
   (func $getCycle (result f64)
     (local $d_size i32)
     (local $len_size i32)
-    (local $prev_size i32)
 
     (local $all i32)
     (local $s i32)
     (local $s2 i32)
-    (local $k i32)
-    (local $m i32)
-    (local $l f64)
-    (local $bestM i32)
-    (local $bestL f64)
-    (local $bestK i32)
 
-    ;; get N (convert f64 to i32),
-    ;; compute N - 1
+    (local $u i32)
+    (local $v i32)
+    (local $bestU i32)
+
+    (local $l f64)
+    (local $bestL f64)
+
+    ;; get N,
+    ;; compute N - 1,
     ;; compute 2 ** (N - 1)
     (global.set $n (i32.trunc_f64_s (global.get $js_n)))
     (global.set $nminus1 (i32.sub (global.get $n) (i32.const 1)))
     (global.set $shlnminus1 (i32.shl (i32.const 1) (global.get $nminus1)))
 
     ;; compute size of `d` in memory: n * n * bytes per f64
-    global.get $n
-    global.get $n
-    i32.mul
-    global.get $BYTES_PER_FLOAT64
-    i32.mul
-    local.set $d_size
+    (local.set $d_size (i32.mul (i32.mul (global.get $n) (global.get $n)) (global.get $BYTES_PER_FLOAT64)))
 
     ;; compute location of `len` in memory
     (global.set $len_ptr (i32.add (global.get $d_ptr) (local.get $d_size)))
 
     ;; compute size of `len` in memory: 2^(n - 1) * (n - 1) * bytes per f64
-    global.get $shlnminus1
-    global.get $nminus1
-    i32.mul
-    global.get $BYTES_PER_FLOAT64
-    i32.mul
-    local.set $len_size
+    (local.set $len_size (i32.mul (i32.mul (global.get $shlnminus1) (global.get $nminus1)) (global.get $BYTES_PER_FLOAT64)))
 
     ;; compute location of `prev` in memory
     (global.set $prev_ptr (i32.add (global.get $len_ptr) (local.get $len_size)))
     
-    ;; compute size of `prev` in memory: 2^(n - 1) * (n - 1) * bytes per i32
-    global.get $shlnminus1
-    global.get $nminus1
-    i32.mul
-    global.get $BYTES_PER_INT32
-    i32.mul
-    local.set $prev_size
-
     ;; compute $all = 2 ** (N - 1) - 1
     (local.set $all (i32.sub (global.get $shlnminus1) (i32.const 1)))
 
     ;; OK LET'S RIDE
 
-    ;; (call $log32 (global.get $n))
-    ;; (call $log32 (global.get $d_ptr))
-    ;; (call $log32 (local.get $d_size))
-    ;; (call $log32 (global.get $len_ptr))
-    ;; (call $log32 (local.get $len_size))
-    ;; (call $log32 (global.get $prev_ptr))
-    ;; (call $log32 (local.get $prev_size))
-
     (local.set $s (i32.const 1))
+
     (block $s_block (loop $s_loop
       ;; break if $s > $all
       (br_if $s_block (i32.gt_u (local.get $s) (local.get $all)))
 
-      (local.set $k (i32.const 0))
-      (block $k_block (loop $k_loop
-        ;; break if $k = n - 1
-        (br_if $k_block (i32.eq (local.get $k) (global.get $nminus1)))
+      (local.set $v (i32.const 0))
+      (block $v_block (loop $v_loop
+        ;; break if v = n - 1
+        (br_if $v_block (i32.eq (local.get $v) (global.get $nminus1)))
 
-        ;; Compute S2 = S ^ (1 << k)
-        (local.set $s2 (i32.xor (local.get $s) (i32.shl (i32.const 1) (local.get $k))))
+        ;; Compute S2 = S ^ (1 << v)
+        (local.set $s2 (i32.xor (local.get $s) (i32.shl (i32.const 1) (local.get $v))))
 
-        ;; Was k in S?
+        ;; Is v in S?
         (if (i32.lt_u (local.get $s2) (local.get $s))
           (then
-            (local.set $bestM (i32.const -1))
-            ;; no need to initialise $bestL
-
             (if (local.get $s2)
               (then
-                (local.set $m (i32.const 0))
-                (block $m_block (loop $m_loop
-                  (br_if $m_block (i32.eq (local.get $m) (global.get $nminus1)))
+                ;; no need to initialise $bestL
+                (local.set $bestU (i32.const -1))
 
-                  ;; Compute S2 & (1 << m)
-                  ;; Was m in S2?
+                (local.set $u (i32.const 0))
+                (block $u_block (loop $u_loop
+                  (br_if $u_block (i32.eq (local.get $u) (global.get $nminus1)))
+
+                  ;; Is u in S2?
+                  ;; Compute S2 & (1 << u)
                   (if (i32.and
                     (local.get $s2)
-                    (i32.shl (i32.const 1) (local.get $m))
+                    (i32.shl (i32.const 1) (local.get $u))
                   )
                     (then
-                      ;; main loop goes here!
-                      
-                      ;; $l = len[S2][m] + d[m][k]
+                      ;; $l = len[S2][u] + d[u][v]
                       (local.set $l
                         (f64.add
-                          (call $get_len (local.get $s2) (local.get $m))
-                          (call $get_d (local.get $m) (local.get $k))
+                          (call $get_len (local.get $s2) (local.get $u))
+                          (call $get_d (local.get $u) (local.get $v))
                         )
                       )
 
-                      ;; if $bestM === -1 or $l < $bestL 
+                      ;; if $bestU === -1 or $l < $bestL
                       (if (i32.or
-                        (i32.eq (local.get $bestM) (i32.const -1))
+                        (i32.eq (local.get $bestU) (i32.const -1))
                         (f64.lt (local.get $l) (local.get $bestL))
                       )
                         (then
-                          (local.set $bestM (local.get $m))
                           (local.set $bestL (local.get $l))
+                          (local.set $bestU (local.get $u))
                         )
                       )
                     )
                   )
 
-                  ;; $m++
-                  (local.set $m (i32.add (local.get $m) (i32.const 1)))
-                  br $m_loop
+                  ;; $u++
+                  (local.set $u (i32.add (local.get $u) (i32.const 1)))
+                  br $u_loop
                 ))
               )
               (else
-                ;; no `m` distinct from `k` can be found
-                ;; `S` has only a single element, `k`. So: base case
-                ;; $bestL = d[n - 1][k]
+                ;; no `u` distinct from `v` can be found
+                ;; `S` has only a single element, `v`. So: base case
+                ;; $bestL = d[n - 1][v]
                 (local.set $bestL
-                  (call $get_d (global.get $nminus1) (local.get $k))
+                  (call $get_d (global.get $nminus1) (local.get $v))
                 )
+                (local.set $bestU (global.get $nminus1))
               )
             )
 
-            (call $set_len (local.get $s) (local.get $k) (local.get $bestL))
-            (call $set_prev (local.get $s) (local.get $k) (local.get $bestM)) ;; can be -1
+            (call $set_len (local.get $s) (local.get $v) (local.get $bestL))
+            (call $set_prev (local.get $s) (local.get $v) (local.get $bestU))
           )
         )
 
-        ;; $k++
-        (local.set $k (i32.add (local.get $k) (i32.const 1)))
-        br $k_loop
+        ;; $v++
+        (local.set $v (i32.add (local.get $v) (i32.const 1)))
+        br $v_loop
       ))
 
       ;; $s++
@@ -262,38 +234,48 @@
     ))
 
     ;; Close the loop
-    (local.set $bestK (i32.const -1))
-    ;; no need to initialise $bestL
-    (local.set $k (i32.const 0))
-    (block $k_block (loop $k_loop
-      ;; break if $k = n - 1
-      (br_if $k_block (i32.eq (local.get $k) (global.get $nminus1)))
+    (if (global.get $nminus1)
+      (then
+        ;; no need to initialise $bestL
+        (local.set $bestU (i32.const -1))
 
-      ;; $l = len[all][k] + d[k][n - 1]
-      (local.set $l
-        (f64.add
-          (call $get_len (local.get $all) (local.get $k))
-          (call $get_d (local.get $k) (global.get $nminus1))
-        )
+        (local.set $u (i32.const 0))
+        (block $u_block (loop $u_loop
+
+          ;; break if $u = n - 1
+          (br_if $u_block (i32.eq (local.get $u) (global.get $nminus1)))
+
+          ;; $l = len[all][u] + d[u][n - 1]
+          (local.set $l
+            (f64.add
+              (call $get_len (local.get $all) (local.get $u))
+              (call $get_d (local.get $u) (global.get $nminus1))
+            )
+          )
+
+          ;; if $bestU === -1 or $l < $bestL 
+          (if (i32.or
+            (i32.eq (local.get $bestU) (i32.const -1))
+            (f64.lt (local.get $l) (local.get $bestL))
+          )
+            (then
+              (local.set $bestL (local.get $l))
+              (local.set $bestU (local.get $u))
+            )
+          )
+
+          ;; $u++
+          (local.set $u (i32.add (local.get $u) (i32.const 1)))
+          br $u_loop
+        ))
       )
-
-      ;; if $k === 0 or $l < $bestL 
-      (if (i32.or
-        (i32.eq (local.get $k) (i32.const 0))
-        (f64.lt (local.get $l) (local.get $bestL))
+      (else
+        (local.set $bestL (f64.const 0))
+        (local.set $bestU (global.get $nminus1))
       )
-        (then
-          (local.set $bestL (local.get $l))
-          (local.set $bestK (local.get $k))
-        )
-      )
+    )
 
-      ;; $k++
-      (local.set $k (i32.add (local.get $k) (i32.const 1)))
-      br $k_loop
-    ))
-
-    (local.get $bestK)
+    (local.get $bestU)
     f64.convert_i32_s
   )
 

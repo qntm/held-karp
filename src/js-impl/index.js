@@ -1,33 +1,32 @@
 /*
   Some stylistic or structural choices in this implementation might seem
   a bit odd because it is intended to closely mirror the WASM implementation
-  (q.v.)
+  (q.v.).
 */
 
-export const getCycle = d => {
+export const getCycle = async d => {
   const n = d.length
 
   /*
     For a set of cities `S` not including city `n - 1`, and for
-    each `k` in `S`, `len[S][k]` is the length of the shortest
+    each `u` in `S`, `len[S][u]` is the length of the shortest
     one-way path which starts at city `n - 1` and passes through
-    every city in `S` in some order, finishing at city `k`.
+    every city in `S` in some order, finishing at city `u`.
 
     `S` is expressed as a bitfield, with one bit set for each city in `S`.
     `S` may therefore take any value from 1 to 2 ^ (n - 1) - 1 inclusive.
 
-    `len[S]` is a sparse array, only containing entries for each city `k` in `S`.
+    `len[S]` is a sparse array, only containing entries for each city `u` in `S`.
 
-    If `S` contains only a single city, `k`, then `len[S][k]` is `d[n - 1][k]`.
+    If `S` contains only a single city, `u`, then `len[S][u]` is `d[n - 1][u]`.
   */
   const len = []
 
   /*
-    `prev[S][k]` is the previous city in that path (the city before before `k`).
+    `prev[S][u]` is the previous city in that path (the city before before `u`).
     This allows us to unwind the optimal path.
 
-    `prev[S][k]` is `undefined` if the previous city is `n - 1`.
-    This happens if `S` contains only a single city, `k`.
+    If `S` contains only a single city, `u`, then `prev[S][u]` is `n - 1`.
   */
   const prev = []
 
@@ -37,57 +36,64 @@ export const getCycle = d => {
     prev[S] = Array(n - 1)
     len[S] = Array(n - 1)
 
-    for (let k = 0; k < n - 1; k++) {
-      const S2 = S ^ (1 << k)
-
-      // Was k in S?
+    for (let v = 0; v < n - 1; v++) {
+      const S2 = S ^ (1 << v)
+      // Is v in S?
       if (S2 < S) {
         let bestL
-        let bestM = -1
+        let bestU
         if (S2) {
-          for (let m = 0; m < n - 1; m++) {
-            // Was m in S2?
-            if (S2 & (1 << m)) {
-              const l = len[S2][m] + d[m][k]
-
-              if (bestM === -1 || l < bestL) {
+          // no need to initialise `bestL`
+          bestU = -1
+          for (let u = 0; u < n - 1; u++) {
+            // Is u in S2?
+            if (S2 & (1 << u)) {
+              const l = len[S2][u] + d[u][v]
+              if (bestU === -1 || l < bestL) {
                 bestL = l
-                bestM = m
+                bestU = u
               }
             }
           }
         } else {
-          // If no `m` distinct from `k` can be found,
-          // `S` has only a single element, `k`. So: base case
-          bestL = d[n - 1][k]
+          // If no `u` distinct from `v` can be found,
+          // `S` has only a single element, `v`. So: base case
+          bestL = d[n - 1][v]
+          bestU = n - 1
         }
 
-        len[S][k] = bestL
-        prev[S][k] = bestM // can be -1
+        len[S][v] = bestL
+        prev[S][v] = bestU
       }
     }
   }
 
   // Close the loop
   let bestL
-  let bestK = -1
-  for (let k = 0; k < n - 1; k++) {
-    const l = len[all][k] + d[k][n - 1]
-
-    if (k === 0 || l < bestL) {
-      bestL = l
-      bestK = k
+  let bestU
+  if (n - 1) {
+    // no need to initialise `bestL`
+    bestU = -1
+    for (let u = 0; u < n - 1; u++) {
+      const l = len[all][u] + d[u][n - 1]
+      if (bestU === -1 || l < bestL) {
+        bestL = l
+        bestU = u
+      }
     }
+  } else {
+    bestL = 0
+    bestU = n - 1
   }
 
   // Trace backwards through the optimal path
   let cycle = [n - 1]
-  let k = bestK
+  let u = bestU
   let S = all
-  while (k !== -1) {
-    cycle.unshift(k)
-    const S2 = S ^ (1 << k)
-    k = prev[S][k]
+  while (u !== n - 1) {
+    cycle.unshift(u)
+    const S2 = S ^ (1 << u)
+    u = prev[S][u]
     S = S2
   }
 
@@ -106,7 +112,7 @@ export const getCycle = d => {
   return { l, cycle }
 }
 
-export const getPath = d => {
+export const getPath = async d => {
   /*
     The solution to TSP is a Hamiltonian cycle. If all we want is
     a Hamiltonian path, we can add a "universal vertex" city which is
@@ -115,7 +121,7 @@ export const getPath = d => {
   */
 
   // new city is 0, all other cities increase by 1
-  const { l, cycle } = getCycle([
+  const { l, cycle } = await getCycle([
     [0, ...Array(d.length).fill(0)],
     ...d.map(d2 =>
       [0, ...d2]
@@ -124,7 +130,7 @@ export const getPath = d => {
 
   // Eliminate new city 0 from the start and end of the cycle
   // and bump the rest back down
-  const path = cycle.slice(1, cycle.length - 1).map(k => k - 1)
+  const path = cycle.slice(1, cycle.length - 1).map(u => u - 1)
 
   return { l, path }
 }

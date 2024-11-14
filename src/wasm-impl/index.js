@@ -9,7 +9,7 @@ const BYTES_PER_INT32 = 4
 const BYTES_PER_FLOAT64 = 8
 const BYTES_PER_PAGE = 65_536
 
-const wasmBuffer = await fs.readFile(import.meta.resolve('./cycle.wasm'))
+const wasmBuffer = await fs.readFile(new URL('cycle.wasm', import.meta.url))
 
 export const getCycle = async d => {
   const n = d.length
@@ -38,6 +38,10 @@ export const getCycle = async d => {
   const lenPtr = dPtr + dSize
   const prevPtr = lenPtr + lenSize
 
+  const all = 2 ** (n - 1) - 1
+
+  // OK LET'S RIDE
+
   for (let u = 0; u < n; u++) {
     for (let v = 0; v < n; v++) {
       // `d[u][v]`
@@ -45,16 +49,17 @@ export const getCycle = async d => {
     }
   }
 
-  let k = wasmModule.instance.exports.getCycle()
+  const bestU = wasmModule.instance.exports.getCycle()
 
   // Read the cycle out of `prev` in memory, the easy way...
   let cycle = [n - 1]
-  let S = 2 ** (n - 1) - 1
-  while (k !== -1) {
-    cycle.unshift(k)
-    const S2 = S ^ (1 << k)
-    // `prev[S][k]`
-    k = dataView.getInt32(prevPtr + ((n - 1) * S + k) * BYTES_PER_INT32, true)
+  let u = bestU
+  let S = all
+  while (u !== n - 1) {
+    cycle.unshift(u)
+    const S2 = S ^ (1 << u)
+    // `prev[S][u]`
+    u = dataView.getInt32(prevPtr + ((n - 1) * S + u) * BYTES_PER_INT32, true)
     S = S2
   }
 
