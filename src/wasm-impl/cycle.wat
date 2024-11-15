@@ -109,7 +109,7 @@
 
   ;; Actual work
 
-  (func $getCycle (result f64)
+  (func $doHK (result f64)
     (local $d_size i32)
     (local $len_size i32)
 
@@ -169,13 +169,11 @@
               (then
                 ;; no need to initialise $bestL
                 (local.set $bestU (i32.const -1))
-
                 (local.set $u (i32.const 0))
                 (block $u_block (loop $u_loop
                   (br_if $u_block (i32.eq (local.get $u) (global.get $nminus1)))
 
-                  ;; Is u in S2?
-                  ;; Compute S2 & (1 << u)
+                  ;; Is u in S2? Compute S2 & (1 << u)
                   (if (i32.and
                     (local.get $s2)
                     (i32.shl (i32.const 1) (local.get $u))
@@ -238,11 +236,8 @@
       (then
         ;; no need to initialise $bestL
         (local.set $bestU (i32.const -1))
-
         (local.set $u (i32.const 0))
         (block $u_block (loop $u_loop
-
-          ;; break if $u = n - 1
           (br_if $u_block (i32.eq (local.get $u) (global.get $nminus1)))
 
           ;; $l = len[all][u] + d[u][n - 1]
@@ -279,5 +274,5 @@
     f64.convert_i32_s
   )
 
-  (export "getCycle" (func $getCycle))
+  (export "doHK" (func $doHK))
 )

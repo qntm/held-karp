@@ -45,13 +45,13 @@ export const getCycle = async d => {
   for (let u = 0; u < n; u++) {
     for (let v = 0; v < n; v++) {
       // `d[u][v]`
-      dataView.setFloat64(dPtr + (u * n + v) * BYTES_PER_FLOAT64, d[u][v], true)
+      dataView.setFloat64(dPtr + (n * u + v) * BYTES_PER_FLOAT64, d[u][v], true)
     }
   }
 
-  const bestU = wasmModule.instance.exports.getCycle()
+  const bestU = wasmModule.instance.exports.doHK()
 
-  // Read the cycle out of `prev` in memory, the easy way...
+  // Read the cycle out of `prev` in memory
   let cycle = [n - 1]
   let u = bestU
   let S = all

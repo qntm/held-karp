@@ -1,7 +1,6 @@
 /*
-  Some stylistic or structural choices in this implementation might seem
-  a bit odd because it is intended to closely mirror the WASM implementation
-  (q.v.).
+  Some stylistic or structural choices in this implementation might seem a bit odd...
+  this is because it is intended to closely mirror the WASM implementation (q.v.).
 */
 
 export const getCycle = async d => {
@@ -30,13 +29,15 @@ export const getCycle = async d => {
   */
   const prev = []
 
+  // ALSO, fun fact: for performance reasons it's a lot more efficient to use
+  // a flattened array `len[(n - 1) * S + u]` instead of `len[S][u]`, ditto for `prev`!
+
   const all = (1 << (n - 1)) - 1
 
-  for (let S = 1; S <= all; S++) {
-    prev[S] = Array(n - 1)
-    len[S] = Array(n - 1)
-
-    for (let v = 0; v < n - 1; v++) {
+  let S = 1
+  while (S <= all) {
+    let v = 0
+    while (v < n - 1) {
       const S2 = S ^ (1 << v)
       // Is v in S?
       if (S2 < S) {
@@ -45,15 +46,17 @@ export const getCycle = async d => {
         if (S2) {
           // no need to initialise `bestL`
           bestU = -1
-          for (let u = 0; u < n - 1; u++) {
+          let u = 0
+          while (u < n - 1) {
             // Is u in S2?
             if (S2 & (1 << u)) {
-              const l = len[S2][u] + d[u][v]
+              const l = len[(n - 1) * S2 + u] + d[u][v]
               if (bestU === -1 || l < bestL) {
                 bestL = l
                 bestU = u
               }
             }
+            u++
           }
         } else {
           // If no `u` distinct from `v` can be found,
@@ -62,10 +65,12 @@ export const getCycle = async d => {
           bestU = n - 1
         }
 
-        len[S][v] = bestL
-        prev[S][v] = bestU
+        len[(n - 1) * S + v] = bestL
+        prev[(n - 1) * S + v] = bestU
       }
+      v++
     }
+    S++
   }
 
   // Close the loop
@@ -74,12 +79,14 @@ export const getCycle = async d => {
   if (n - 1) {
     // no need to initialise `bestL`
     bestU = -1
-    for (let u = 0; u < n - 1; u++) {
-      const l = len[all][u] + d[u][n - 1]
+    let u = 0
+    while (u < n - 1) {
+      const l = len[(n - 1) * all + u] + d[u][n - 1]
       if (bestU === -1 || l < bestL) {
         bestL = l
         bestU = u
       }
+      u++
     }
   } else {
     bestL = 0
@@ -89,11 +96,11 @@ export const getCycle = async d => {
   // Trace backwards through the optimal path
   let cycle = [n - 1]
   let u = bestU
-  let S = all
+  S = all
   while (u !== n - 1) {
     cycle.unshift(u)
     const S2 = S ^ (1 << u)
-    u = prev[S][u]
+    u = prev[(n - 1) * S + u]
     S = S2
   }
 
