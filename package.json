@@ -1,6 +1,6 @@
 {
   "name": "held-karp",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Held-Karp algorithm for the travelling salesman problem",
   "type": "module",
   "exports": {
