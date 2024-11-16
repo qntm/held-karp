@@ -1,4 +1,4 @@
-;; turn this into WASM using e.g. `wat2wasm cycle.wat -o cycle.wasm`
+;; turn this into WASM using e.g. `wat2wasm hk.wat -o hk.wasm`
 
 (module
   (import "js" "n" (global $js_n f64))

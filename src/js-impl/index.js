@@ -1,9 +1,12 @@
 /*
   Some stylistic or structural choices in this implementation might seem a bit odd...
   this is because it is intended to closely mirror the WASM implementation (q.v.).
+
+  Notably, we use flattened arrays: `len[(n - 1) * S + u]` instead of `len[S][u]`
+  and likewise for `prev`. This was a significant performance enhancement!
 */
 
-export const getCycle = async d => {
+export const getCycle = d => {
   const n = d.length
 
   /*
@@ -28,9 +31,6 @@ export const getCycle = async d => {
     If `S` contains only a single city, `u`, then `prev[S][u]` is `n - 1`.
   */
   const prev = []
-
-  // ALSO, fun fact: for performance reasons it's a lot more efficient to use
-  // a flattened array `len[(n - 1) * S + u]` instead of `len[S][u]`, ditto for `prev`!
 
   const all = (1 << (n - 1)) - 1
 
@@ -119,7 +119,7 @@ export const getCycle = async d => {
   return { l, cycle }
 }
 
-export const getPath = async d => {
+export const getPath = d => {
   /*
     The solution to TSP is a Hamiltonian cycle. If all we want is
     a Hamiltonian path, we can add a "universal vertex" city which is
@@ -128,7 +128,7 @@ export const getPath = async d => {
   */
 
   // new city is 0, all other cities increase by 1
-  const { l, cycle } = await getCycle([
+  const { l, cycle } = getCycle([
     [0, ...Array(d.length).fill(0)],
     ...d.map(d2 =>
       [0, ...d2]
