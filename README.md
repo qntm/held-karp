@@ -2,6 +2,10 @@
 
 A pure JavaScript implementation of the [Held–Karp algorithm](https://en.wikipedia.org/wiki/Held%E2%80%93Karp_algorithm) for solving the [travelling salesman problem](https://en.wikipedia.org/wiki/Traveling_salesman_problem). This package also includes a [WebAssembly implementation](#webassembly-implementation) of the same algorithm.
 
+```sh
+npm install held-karp
+```
+
 Held–Karp is the best known [*exact* algorithm for TSP](https://en.wikipedia.org/wiki/Travelling_salesman_problem#Exact_algorithms), and requires [*O*(*n*<sup>2</sup>2<sup>*n*</sup>) time and *O*(*n*2<sup>*n*</sup>) space](https://en.wikipedia.org/wiki/Held%E2%80%93Karp_algorithm#Algorithmic_complexity). This means the number of cities which can be handled is principally constrained by memory usage. Given 4GiB of memory:
 
 * The JavaScript implementation computes optimal Hamiltonian cycles for **up to 23 cities** (paths for up to 22 cities), in around 6.5 seconds.
