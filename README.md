@@ -90,7 +90,7 @@ Same as the JavaScript implementation except that `getPath` is asynchronous.
 
 ## Performance
 
-For performance tests, run `npm run perf -- 23`, specifying whatever number of cities you wish from 1 to 23, or higher if you're feeling ambitious. *n* random cities will be placed randomly in a unit square, distances between them will be computed, then HK will be carried out to determine a cycle, capturing timings. Both the JavaScript and WebAssembly implementations will be exercised.
+For performance tests, run `npm run perf -- 23`, specifying whatever number of cities you wish from 1 to 23, or higher if you're feeling ambitious. *n* cities will be placed randomly in a unit square, distances between them will be computed, then HK will be carried out to determine a cycle, capturing timings. Both the JavaScript and WebAssembly implementations will be exercised.
 
 The JavaScript implementation has been optimised as best I can for performance, both for speed and memory usage. On my machine, 23 cities can be handled in around 6.5 to 7.0 seconds. With 24 cities, I find that Node.js starts crashing... even if I grant it significantly more memory (the default is 4GiB). I am guessing that this is because Node.js dislikes it when we try to allocate an array with more than ~100,000,000 elements (two of them, actually). But I'm not certain what's actually going on here. Nominally, a JavaScript array can be as many as ~4,000,000,000 entries long.
 
