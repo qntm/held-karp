@@ -7,7 +7,7 @@ I used HK twice this year for unrelated projects, so I thought I might as well m
 Held–Karp [requires *O*(*n*<sup>2</sup>2<sup>*n*</sup>) time and *O*(*n*2<sup>*n*</sup>) space](https://en.wikipedia.org/wiki/Held%E2%80%93Karp_algorithm#Algorithmic_complexity).
 
 * The JavaScript implementation computes optimal Hamiltonian cycles for up to 23 cities (paths for up to 22 cities) in 6.5 to 7.5 seconds, using less than 4GiB of memory... at least on my machine. For 24+ cities, Node.js crashes, no matter how much memory I give it...
-* The WebAssembly implementation is has a hard cap at 24 cities for cycles (23 for paths) - 1 more than the JavaScript. This cap exists because this is the most that can be handled using [a single 4GiB chunk of memory](https://developer.mozilla.org/en-US/docs/WebAssembly/JavaScript_interface/Memory/Memory#:~:text=Wasm%20currently%20only%20allows%2032%2Dbit%20addressing).
+* The WebAssembly implementation has a hard cap at 24 cities for cycles (23 for paths) - 1 more than the JavaScript. This cap exists because this is the most that can be handled using [a single 4GiB chunk of memory](https://developer.mozilla.org/en-US/docs/WebAssembly/JavaScript_interface/Memory/Memory#:~:text=Wasm%20currently%20only%20allows%2032%2Dbit%20addressing).
 
 See [Performance](#performance) for further discussion.
 
