@@ -23,7 +23,6 @@
 
   (global $n (mut i32) (i32.const 0))
   (global $nminus1 (mut i32) (i32.const 0))
-  (global $shlnminus1 (mut i32) (i32.const 0))
 
   ;; memory locations
 
@@ -94,13 +93,7 @@
     i32.add
   )
 
-  ;; get prev[S][u] from memory address OFFSET + ((N - 1) * S + u) * 4
-  (func $get_prev (param $s i32) (param $u i32) (result i32)
-    (call $get_prev_ptr (local.get $s) (local.get $u))
-    i32.load
-  )
-
-  ;; set prev[S][u]
+  ;; set prev[S][u] at memory address OFFSET + ((N - 1) * S + u) * 4
   (func $set_prev (param $s i32) (param $u i32) (param $prev i32)
     (call $get_prev_ptr (local.get $s) (local.get $u))
     local.get $prev
@@ -126,10 +119,8 @@
 
     ;; get N,
     ;; compute N - 1,
-    ;; compute 2 ** (N - 1)
     (global.set $n (i32.trunc_f64_s (global.get $js_n)))
     (global.set $nminus1 (i32.sub (global.get $n) (i32.const 1)))
-    (global.set $shlnminus1 (i32.shl (i32.const 1) (global.get $nminus1)))
 
     ;; compute size of `d` in memory: n * n * bytes per f64
     (local.set $d_size (i32.mul (i32.mul (global.get $n) (global.get $n)) (global.get $BYTES_PER_FLOAT64)))
@@ -138,13 +129,13 @@
     (global.set $len_ptr (i32.add (global.get $d_ptr) (local.get $d_size)))
 
     ;; compute size of `len` in memory: 2^(n - 1) * (n - 1) * bytes per f64
-    (local.set $len_size (i32.mul (i32.mul (global.get $shlnminus1) (global.get $nminus1)) (global.get $BYTES_PER_FLOAT64)))
+    (local.set $len_size (i32.mul (i32.mul (i32.shl (i32.const 1) (global.get $nminus1)) (global.get $nminus1)) (global.get $BYTES_PER_FLOAT64)))
 
     ;; compute location of `prev` in memory
     (global.set $prev_ptr (i32.add (global.get $len_ptr) (local.get $len_size)))
     
     ;; compute $all = 2 ** (N - 1) - 1
-    (local.set $all (i32.sub (global.get $shlnminus1) (i32.const 1)))
+    (local.set $all (i32.sub (i32.shl (i32.const 1) (global.get $nminus1)) (i32.const 1)))
 
     ;; OK LET'S RIDE
 
