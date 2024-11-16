@@ -96,7 +96,7 @@ There are some further performance optimisations available here:
 
 * Distances are stored using 64-bit floats. We could use 32-bit integers instead. This would reduce memory usage by about a third and allow us to go to 25 cities. However, we could no longer have non-integer distances. Also, we could no longer use `Infinity` as a sentinel value for cities which are not connected together at all and for city layouts where a Hamiltonian cycle is not possible.
 * City IDs are stored using 32-bit integers. We could use 16-bit integers. Combined with the previous change, this would allow us to go to 26 cities. However, this is relatively difficult because WebAssembly doesn't have native 16-bit integers - we would need to pack two city IDs into each single 32-bit integer, manually, instead.
-* Distances and city IDs are stored in two separate areas of a single [`Memory` object](https://developer.mozilla.org/en-US/docs/WebAssembly/JavaScript_interface/Memory). Could we store them in [two separate `Memory` objects](https://developer.mozilla.org/en-US/docs/WebAssembly/Understanding_the_text_format#multiple_memories)?
+* Distances and city IDs are stored in two separate areas of a single [`Memory` object](https://developer.mozilla.org/en-US/docs/WebAssembly/JavaScript_interface/Memory). Could we store them in [two separate `Memory` objects](https://developer.mozilla.org/en-US/docs/WebAssembly/Understanding_the_text_format#multiple_memories)? `wat2wasm` does not appear to support this yet.
 
 I was expecting the WebAssembly implementation's performance to be at least an order of magnitude faster than the JavaScript implementation. In practice, however...
 
