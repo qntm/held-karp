@@ -7,7 +7,7 @@ I used HK twice this year for unrelated projects, so I thought I might as well m
 Held–Karp [requires *O*(*n*<sup>2</sup>2<sup>*n*</sup>) time and *O*(*n*2<sup>*n*</sup>) space](https://en.wikipedia.org/wiki/Held%E2%80%93Karp_algorithm#Algorithmic_complexity).
 
 * The JavaScript implementation computes optimal Hamiltonian cycles for up to 23 cities (paths for up to 22 cities) in 6.5 to 7.5 seconds, using less than 4GiB of memory... at least on my machine. For 24+ cities, Node.js crashes, no matter how much memory I give it...
-* The WebAssembly implementation has a hard cap at 24 cities for cycles (23 for paths) - 1 more than the JavaScript. This cap exists because this is the most that can be handled using [a single 4GiB chunk of memory](https://developer.mozilla.org/en-US/docs/WebAssembly/JavaScript_interface/Memory/Memory#:~:text=Wasm%20currently%20only%20allows%2032%2Dbit%20addressing).
+* The WebAssembly implementation is has a hard cap at 24 cities for cycles (23 for paths) - 1 more than the JavaScript. This cap exists because this is the most that can be handled using [a single 4GiB chunk of memory](https://developer.mozilla.org/en-US/docs/WebAssembly/JavaScript_interface/Memory/Memory#:~:text=Wasm%20currently%20only%20allows%2032%2Dbit%20addressing).
 
 See [Performance](#performance) for further discussion.
 
@@ -55,7 +55,7 @@ assert.deepEqual(getPath(degenerate), { l: 0, path: [0] })
 
 #### getCycle(d: number[][]): { cycle: number[], l: number }
 
-The parameter `d` must be a square array of arrays of numbers, such that `d[u][v]` is the length of the direct edge from city `u` to city `v`. `d[u][u]` will be ignored for all `u`. `d` must contain at least one city and need not be symmetric. If two cities are not connected at all, set `d[u][v]` to `Infinity`. This can result in cases where no cycle is possible, in which case the returned "solution" will have length `Infinity`.
+`d` must be a square array of arrays of numbers, such that `d[u][v]` is the length of the direct edge from city `u` to city `v`. `d[u][u]` will be ignored for all `u`. `d` must contain at least one city and need not be symmetric. If two cities are not connected at all, set `d[u][v]` to `Infinity`. This can result in cases where no cycle is possible, in which case the returned "solution" will have length `Infinity`.
 
 Returns `{ cycle, l }` where `cycle` is an optimal cycle consisting of *n* + 1 city numbers starting and ending with `0` and `l` is the length of the cycle.
 
@@ -88,13 +88,13 @@ As for the JavaScript implementation but note that `getPath` is asynchronous.
 
 For performance tests, run `npm run perf -- 23`, specifying whatever number of cities you wish from 1 to 23, or higher if you're feeling ambitious. *n* random cities will be placed randomly in a unit square, distances between them will be computed, then HK will be carried out to determine a cycle, capturing timings. Both the JavaScript and WebAssembly implementations will be exercised.
 
-The JavaScript implementation has been optimised as best I can for performance, both running time and memory usage. On my machine, 23 cities can be handled in around 6.5 to 7.0 seconds. With 24 cities, Node.js starts crashing... even if I grant it significantly more memory (the default is 4,096 MiB). I am guessing that this is because Node.js dislikes it when we try to allocate an array with more than 100,000,000 elements (two of them, actually). But I'm not certain what's actually going on here. Nominally, a JavaScript array can be as many as 4,000,000,000 entries long.
+The JavaScript implementation has been optimised as best I can for performance, both running time and memory usage. On my machine, 23 cities can be handled in around 6.5 to 7.0 seconds. With 24 cities, Node.js starts crashing... even if I grant it significantly more memory (the default is 4,096 MiB). I am guessing that this is because Node.js dislikes it when we try to allocate an array with more than ~100,000,000 elements (two of them, actually). But I'm not certain what's actually going on here. Nominally, a JavaScript array can be as many as ~4,000,000,000 entries long.
 
-For the WebAssembly implementation, there are some possible performance optimisations available:
+The WebAssembly implementation's usage of memory is more efficient. And there are some possible performance optimisations available:
 
 * Intercity distances are stored using 64-bit floats. We could use 32-bit integers instead. This would reduce memory usage by about a third and allow us to go to 25 cities. However, we could no longer have non-integer distances. Also, we could no longer use `Infinity` as a sentinel value for cities which are not connected together at all and for city layouts where a Hamiltonian cycle is not possible.
-* City IDs are stored using 32-bit integers. We could use 16-bit integers. Combined with the previous change, this would allow us to go to 26 cities. However, this is relatively difficult because WASM doesn't have native 16-bit integers - we would need to pack two city IDs into each single 32-bit integer, manually, instead.
-* Distances and city IDs are stored in two separate areas of a single [`Memory` object](https://developer.mozilla.org/en-US/docs/WebAssembly/JavaScript_interface/Memory). Could we store them in two separate `Memory` objects?
+* City IDs are stored using 32-bit integers. We could use 16-bit integers. Combined with the previous change, this would allow us to go to 26 cities. However, this is relatively difficult because WebAssembly doesn't have native 16-bit integers - we would need to pack two city IDs into each single 32-bit integer, manually, instead.
+* Distances and city IDs are stored in two separate areas of a single [`Memory` object](https://developer.mozilla.org/en-US/docs/WebAssembly/JavaScript_interface/Memory). Could we store them in [two separate `Memory` objects](https://developer.mozilla.org/en-US/docs/WebAssembly/Understanding_the_text_format#multiple_memories)?
 
 I was expecting the WebAssembly implementation's performance to be at least an order of magnitude faster than the JavaScript implementation. In practice, however...
 
@@ -120,8 +120,8 @@ HK/JS: 6.740s
 HK/WASM: 7.010s
 ```
 
-...the two implementations appear to be comparable and the WASM is actually a fraction slower. This was very surprising to me. What explanation could there be for this?
+...the two implementations appear to be comparable and the WebAssembly is actually a fraction slower. This was very surprising to me. What explanation could there be for this?
 
-* My WASM is poorly optimised?
-* WASM is generally not as efficient as I thought?
+* My WebAssembly is poorly optimised?
+* WebAssembly is generally not as efficient as I thought?
 * Node.js/V8/TurboFan is much more efficient for pure computation tasks than I thought?
