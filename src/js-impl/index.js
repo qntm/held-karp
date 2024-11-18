@@ -41,8 +41,8 @@ export const getCycle = d => {
       const S2 = S ^ (1 << v)
       // Is v in S?
       if (S2 < S) {
-        let bestL
-        let bestU
+        let bestL = 0
+        let bestU = 0
         if (S2) {
           // no need to initialise `bestL`
           bestU = -1
