@@ -7,7 +7,7 @@ const argv = process.argv
 argv.shift()
 argv.shift()
 
-const n = Number(argv.shift()) || 23
+const n = Number(argv.shift()) || 24
 
 // Place some random cities in 2D space
 const xys = Array(n).fill().map(() => [Math.random(), Math.random()])
