@@ -124,4 +124,4 @@ HK/JS: 15.071s
 HK/WASM: 33.295s
 ```
 
-...it looks like it still falls quite a long way short of the JavaScript optimisations built into <a href="https://nodejs.org">Node.js</a>/<a href="https://v8.dev/2>V8</a>/<a href="https://v8.dev/docs/turbofan">TurboFan</a>. To be continued!</p>
+...it looks like it still falls quite a long way short of the JavaScript optimisations built into [Node.js](https://nodejs.org)/[V8](https://v8.dev/2)/[TurboFan](https://v8.dev/docs/turbofan). To be continued!</p>
