@@ -6,12 +6,12 @@ A pure JavaScript implementation of the [Held–Karp algorithm](https://en.wikip
 npm install held-karp
 ```
 
-Held–Karp is the best known [*exact* algorithm for TSP](https://en.wikipedia.org/wiki/Travelling_salesman_problem#Exact_algorithms), and requires [*O*(*n*<sup>2</sup>2<sup>*n*</sup>) time and *O*(*n*2<sup>*n*</sup>) space](https://en.wikipedia.org/wiki/Held%E2%80%93Karp_algorithm#Algorithmic_complexity). This means the number of cities which can be handled is principally constrained by memory usage. Given 4GiB of memory:
+Held–Karp is the best known [*exact* algorithm for TSP](https://en.wikipedia.org/wiki/Travelling_salesman_problem#Exact_algorithms), and requires [*O*(*n*<sup>2</sup>2<sup>*n*</sup>) time and *O*(*n*2<sup>*n*</sup>) space](https://en.wikipedia.org/wiki/Held%E2%80%93Karp_algorithm#Algorithmic_complexity). Execution time and memory usage are therefore significant considerations as *n* grows.
 
-* The JavaScript implementation computes optimal Hamiltonian cycles for **up to 23 cities** (paths for up to 22 cities), in around 6.5 seconds.
-* The WebAssembly implementation computes optimal Hamiltonian cycles for **up to 24 cities** (paths for up to 23 cities), in around 15.5 seconds.
+* The JavaScript implementation computes optimal Hamiltonian cycles for **up to 28 cities** (paths for up to 27 cities). This consumes approximately 31 GiB of memory and takes ~5 minutes.
+* The WebAssembly implementation computes optimal Hamiltonian cycles for **up to 24 cities** (paths for up to 23 cities). This consumes approximately 4 GiB of memory and takes ~15.5 seconds.
 
-See [Performance](#performance) for discussion of, among other things, what happens when additional memory is granted.
+See [Performance](#performance) for further discussion of these limits.
 
 Note that inexact algorithms for TSP exist with much better running time and memory usage characteristics.
 
@@ -90,44 +90,38 @@ Same as the JavaScript implementation except that `getPath` is asynchronous.
 
 ## Performance
 
-For performance tests, run `npm run perf -- 23`, specifying whatever number of cities you wish from 1 to 23, or higher if you're feeling ambitious. *n* cities will be placed randomly in a unit square, distances between them will be computed, then HK will be carried out to determine a cycle, capturing timings. Both the JavaScript and WebAssembly implementations will be exercised.
+For performance tests, run _e.g._ `npm run perf -- 24`, specifying whatever number of cities you wish from 1 to 28 (or higher, if you'd like to see some exciting failure cases). *n* cities will be placed randomly in a unit square, distances between them will be computed, then HK will be carried out to determine a cycle, capturing timings. Both the JavaScript and WebAssembly implementations will be exercised.
 
-The JavaScript implementation has been optimised as best I can for performance, both for speed and memory usage. On my machine, 23 cities can be handled in around 6.5 to 7.0 seconds. With 24 cities, I find that Node.js starts crashing. Even if I grant it significantly more memory (the default is 4GiB), I see a `RangeError` which I believe arises when we try to allocate an array with over 2<sup>27</sup> - 1 = 134,217,727 elements. (Two of them, actually.) But I'm not certain why this is a problem, because nominally a JavaScript array can be as many as 2<sup>32</sup> - 1 = 4,294,967,295 elements long...
+Internally, Held–Karp works by computing a large table of intermediate results, then reading an optimal cycle out of the table. The principal limitation for our purposes is the size of the array we can allocate to store these results, which must have 2<sup>*n* - 1</sup>(*n* - 1) entries.
 
-The WebAssembly implementation's usage of memory is more efficient, which allows us to go to 24 cities, 1 more than the JavaScript implementation. 4GiB of memory is the [maximum that WebAssembly can address](https://developer.mozilla.org/en-US/docs/WebAssembly/JavaScript_interface/Memory/Memory#:~:text=Wasm%20currently%20only%20allows%2032%2Dbit%20addressing).
+At this point, the JavaScript implementation is highly optimised. It uses a `Float64Array` to store intermediate path lengths and a `Uint8Array` to store intermediate city IDs. The maximum number of elements of a [typed array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Typed_arrays) in JavaScript is 2*32* - 1 = 4,294,967,296, which means we're **capped at *n* = 28** (3,623,878,656 elements). At 8 bytes per element in the `Float64Array` and 1 byte per element in the `Uint8Array`, the two arrays consume 30.4GiB of RAM, plus change. Running time obviously varies depending on how much RAM Node.js has available, but seems to be in the 4.5–7 minute range in this case. For *n* = 24, running time is more like 15 seconds.
 
-There are some further performance optimisations available here:
-
-* Distances are stored using 64-bit floats. We could use 32-bit integers instead. This would reduce memory usage by about a third and allow us to go to 25 cities. However, we could no longer have non-integer distances. Also, we could no longer use `Infinity` as a sentinel value for cities which are not connected together at all and for city layouts where a Hamiltonian cycle is not possible.
-* City IDs are stored using 32-bit integers. We could use 16-bit integers. Combined with the previous change, this would allow us to go to 26 cities. However, this is relatively difficult because WebAssembly doesn't have native 16-bit integers - we would need to pack two city IDs into each single 32-bit integer, manually, instead.
-* Distances and city IDs are stored in two separate areas of a single [`Memory` object](https://developer.mozilla.org/en-US/docs/WebAssembly/JavaScript_interface/Memory). Could we store them in [two separate `Memory` objects](https://developer.mozilla.org/en-US/docs/WebAssembly/Understanding_the_text_format#multiple_memories)? `wat2wasm` does not appear to support this yet.
-
-I was expecting the WebAssembly implementation's performance to be at least an order of magnitude faster than the JavaScript implementation. In practice, however...
+WebAssembly has `f64`s but no `i8`s; the smallest numerical type it has is an `i32`. That means we're looking at 8 bytes per intermediate path length and 4 bytes per intermediate city ID. WebAssembly is also [capped at 4GiB](https://developer.mozilla.org/en-US/docs/WebAssembly/JavaScript_interface/Memory/Memory#:~:text=Wasm%20currently%20only%20allows%2032%2Dbit%20addressing), which in turn **caps us at *n* = 24** (192,937,984 elements per array, 2.2GiB of RAM across the two arrays). The WebAssembly has been *somewhat* hand-optimised, but...
 
 ```
-{
-  l: 3.9236567563914644,
-  cycle: [
-     0,  1, 16, 10, 4, 18, 17, 11,
-    21,  6,  9, 12, 7, 15, 14, 13,
-     2, 22, 19,  3, 8, 20,  5,  0
-  ]
-}
-HK/JS: 6.740s
+n = 24
 
 {
-  l: 3.9236567563914644,
+  l: 3.5102663956036024,
   cycle: [
-     0,  1, 16, 10, 4, 18, 17, 11,
-    21,  6,  9, 12, 7, 15, 14, 13,
-     2, 22, 19,  3, 8, 20,  5,  0
+     0, 17, 11, 2,  6,  3, 12, 21,
+    19,  8, 13, 5, 18, 14,  1, 20,
+    23,  7,  9, 4, 22, 16, 15, 10,
+     0
   ]
 }
-HK/WASM: 7.010s
+HK/JS: 15.071s
+
+{
+  l: 3.5102663956036024,
+  cycle: [
+     0, 17, 11, 2,  6,  3, 12, 21,
+    19,  8, 13, 5, 18, 14,  1, 20,
+    23,  7,  9, 4, 22, 16, 15, 10,
+     0
+  ]
+}
+HK/WASM: 33.295s
 ```
 
-...the two implementations appear to be comparable and the WebAssembly is actually a fraction slower. This was very surprising to me. What explanation could there be for this?
-
-* My WebAssembly is poorly optimised?
-* WebAssembly is generally not as efficient as I thought?
-* Node.js/V8/TurboFan is much more efficient for pure computation tasks than I thought?
+...it looks like it still falls quite a long way short of the JavaScript optimisations built into <a href="https://nodejs.org">Node.js</a>/<a href="https://v8.dev/2>V8</a>/<a href="https://v8.dev/docs/turbofan">TurboFan</a>. To be continued!</p>
