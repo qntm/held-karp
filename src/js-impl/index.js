@@ -8,6 +8,7 @@
 
 export const getCycle = d => {
   const n = d.length
+  const all = (1 << (n - 1)) - 1
 
   /*
     For a set of cities `S` not including city `n - 1`, and for
@@ -22,7 +23,7 @@ export const getCycle = d => {
 
     If `S` contains only a single city, `u`, then `len[S][u]` is `d[n - 1][u]`.
   */
-  const len = []
+  const len = new Float64Array((1 << (n - 1)) * (n - 1))
 
   /*
     `prev[S][u]` is the previous city in that path (the city before before `u`).
@@ -30,9 +31,7 @@ export const getCycle = d => {
 
     If `S` contains only a single city, `u`, then `prev[S][u]` is `n - 1`.
   */
-  const prev = []
-
-  const all = (1 << (n - 1)) - 1
+  const prev = new Uint8Array((1 << (n - 1)) * (n - 1))
 
   let S = 1
   while (S <= all) {
@@ -41,8 +40,8 @@ export const getCycle = d => {
       const S2 = S ^ (1 << v)
       // Is v in S?
       if (S2 < S) {
-        let bestL
-        let bestU
+        let bestL = 0
+        let bestU = 0
         if (S2) {
           // no need to initialise `bestL`
           bestU = -1
