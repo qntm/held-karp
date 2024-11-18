@@ -90,7 +90,7 @@ Same as the JavaScript implementation except that `getPath` is asynchronous.
 
 ## Performance
 
-For performance tests, run _e.g._ `npm run perf -- 24`, specifying whatever number of cities you wish from 1 to 28 (or higher, if you'd like to see some exciting failure cases). *n* cities will be placed randomly in a unit square, distances between them will be computed, then HK will be carried out to determine a cycle, capturing timings. Both the JavaScript and WebAssembly implementations will be exercised.
+For performance tests, run _e.g._ `npm run perf -- 24`, specifying whatever number of cities you wish. *n* cities will be placed randomly in a unit square, distances between them will be computed, then HK will be carried out to determine a cycle, capturing timings. Both the JavaScript and WebAssembly implementations will be exercised.
 
 Internally, Held–Karp works by computing a large table of intermediate results, then reading an optimal cycle out of the table. The principal limitation for our purposes is the size of the array we can allocate to store these results, which must have 2<sup>*n* - 1</sup>(*n* - 1) entries.
 
