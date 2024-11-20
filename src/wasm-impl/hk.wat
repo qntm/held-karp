@@ -23,7 +23,6 @@
 
   ;; memory locations
 
-  (global $d_ptr i32 (i32.const 0)) ;; correct
   (global $len_ptr (mut i32) (i32.const 0)) ;; we compute this at startup
   (global $prev_ptr (mut i32) (i32.const 0)) ;; we compute this at startup
 
@@ -38,9 +37,6 @@
 
     i32.const 3 ;; 2^3 bytes per f64
     i32.shl
-
-    global.get $d_ptr
-    i32.add
   )
 
   ;; get d[u][v] from memory address OFFSET + (N * U + V) * 8
@@ -123,7 +119,7 @@
     (local.set $d_size (i32.shl (i32.mul (global.get $n) (global.get $n)) (i32.const 3)))
 
     ;; compute location of `len` in memory
-    (global.set $len_ptr (i32.add (global.get $d_ptr) (local.get $d_size)))
+    (global.set $len_ptr (local.get $d_size))
 
     ;; compute size of `len` in memory: (2^(n - 1) * (n - 1)) << 3 (bytes per f64)
     (local.set $len_size (i32.shl (i32.mul (i32.shl (i32.const 1) (global.get $nminus1)) (global.get $nminus1)) (i32.const 3)))
