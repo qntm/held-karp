@@ -1,4 +1,7 @@
 ;; turn this into WASM using e.g. `wat2wasm hk.wat -o hk.wasm`
+;; JS: 6.828s
+;; optimised best: 8.497s
+;; qntm's best: 12.216s
 
 (module
   (import "js" "n" (global $js_n f64))
@@ -75,7 +78,8 @@
     f64.store
   )
 
-  (func $get_prev_ptr (param $s i32) (param $u i32) (result i32)
+  ;; set prev[S][u] at memory address OFFSET + ((N - 1) * S + u) * 4
+  (func $set_prev (param $s i32) (param $u i32) (param $prev i32)
     global.get $nminus1
     local.get $s
     i32.mul
@@ -87,11 +91,7 @@
 
     global.get $prev_ptr
     i32.add
-  )
 
-  ;; set prev[S][u] at memory address OFFSET + ((N - 1) * S + u) * 4
-  (func $set_prev (param $s i32) (param $u i32) (param $prev i32)
-    (call $get_prev_ptr (local.get $s) (local.get $u))
     local.get $prev
     i32.store
   )
@@ -252,7 +252,7 @@
         ))
       )
       (else
-        (local.set $bestL (f64.const 0))
+        ;; no need to set $bestL
         (local.set $bestU (global.get $nminus1))
       )
     )
