@@ -18,11 +18,11 @@ export const getCycle = async d => {
     return { l: 0, cycle: [0, 0] }
   }
 
-  const dSize = n * n * BYTES_PER_FLOAT64 // for `d[u][v]`
   const lenSize = 2 ** (n - 1) * (n - 1) * BYTES_PER_FLOAT64 // for `len[S][k]`
+  const dSize = n * n * BYTES_PER_FLOAT64 // for `d[u][v]`
   const prevSize = 2 ** (n - 1) * (n - 1) * BYTES_PER_INT32 // for `prev[S][k]`
 
-  const bytes = dSize + lenSize + prevSize
+  const bytes = lenSize + dSize + prevSize
   const pages = Math.ceil(bytes / BYTES_PER_PAGE)
 
   const memory = new WebAssembly.Memory({
@@ -38,9 +38,9 @@ export const getCycle = async d => {
     console,
   })
 
-  const dPtr = 0
-  const lenPtr = dPtr + dSize
-  const prevPtr = lenPtr + lenSize
+  const lenPtr = 0
+  const dPtr = lenPtr + lenSize
+  const prevPtr = dPtr + dSize
 
   const all = 2 ** (n - 1) - 1
 

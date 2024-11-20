@@ -26,7 +26,8 @@
 
   ;; memory locations
 
-  (global $len_ptr (mut i32) (i32.const 0)) ;; we compute this at startup
+  ;; $len_ptr is elided as it is 0
+  (global $d_ptr (mut i32) (i32.const 0)) ;; we compute this at startup
   (global $prev_ptr (mut i32) (i32.const 0)) ;; we compute this at startup
 
   ;; memory lookup functions
@@ -42,6 +43,8 @@
     i32.const 3 ;; 2^3 bytes per f64
     i32.shl
 
+    global.get $d_ptr
+    i32.add
     f64.load
   )
 
@@ -56,8 +59,6 @@
     i32.const 3 ;; 2^3 bytes per f64
     i32.shl
 
-    global.get $len_ptr
-    i32.add
     f64.load
   )
 
@@ -72,8 +73,6 @@
     i32.const 3 ;; 2^3 bytes per f64
     i32.shl
 
-    global.get $len_ptr
-    i32.add
     local.get $len
     f64.store
   )
@@ -118,17 +117,19 @@
     (global.set $n (i32.trunc_f64_s (global.get $js_n)))
     (global.set $nminus1 (i32.sub (global.get $n) (i32.const 1)))
 
-    ;; compute size of `d` in memory: (n * n) << 3 (bytes per f64)
-    (local.set $d_size (i32.shl (i32.mul (global.get $n) (global.get $n)) (i32.const 3)))
-
-    ;; compute location of `len` in memory
-    (global.set $len_ptr (local.get $d_size))
+    ;; location of `len` in memory is 0
 
     ;; compute size of `len` in memory: (2^(n - 1) * (n - 1)) << 3 (bytes per f64)
     (local.set $len_size (i32.shl (i32.mul (i32.shl (i32.const 1) (global.get $nminus1)) (global.get $nminus1)) (i32.const 3)))
 
+    ;; compute location of `d` in memory
+    (global.set $d_ptr (local.get $len_size))
+
+    ;; compute size of `d` in memory: (n * n) << 3 (bytes per f64)
+    (local.set $d_size (i32.shl (i32.mul (global.get $n) (global.get $n)) (i32.const 3)))
+
     ;; compute location of `prev` in memory
-    (global.set $prev_ptr (i32.add (global.get $len_ptr) (local.get $len_size)))
+    (global.set $prev_ptr (i32.add (global.get $d_ptr) (local.get $d_size)))
     
     ;; compute $all = 2 ** (N - 1) - 1
     (local.set $all (i32.sub (i32.shl (i32.const 1) (global.get $nminus1)) (i32.const 1)))
