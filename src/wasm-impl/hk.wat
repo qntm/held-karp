@@ -42,7 +42,8 @@
     f64.load
   )
 
-  (func $get_len_ptr (param $s i32) (param $u i32) (result i32)
+  ;; get len[S][u] from memory address OFFSET + ((N - 1) * S + u) * 8
+  (func $get_len (param $s i32) (param $u i32) (result f64)
     global.get $nminus1
     local.get $s
     i32.mul
@@ -54,17 +55,22 @@
 
     global.get $len_ptr
     i32.add
-  )
-
-  ;; get len[S][u] from memory address OFFSET + ((N - 1) * S + u) * 8
-  (func $get_len (param $s i32) (param $u i32) (result f64)
-    (call $get_len_ptr (local.get $s) (local.get $u))
     f64.load
   )
 
   ;; set len[S][u]
   (func $set_len (param $s i32) (param $u i32) (param $len f64)
-    (call $get_len_ptr (local.get $s) (local.get $u))
+    global.get $nminus1
+    local.get $s
+    i32.mul
+    local.get $u
+    i32.add
+
+    i32.const 3 ;; 2^3 bytes per f64
+    i32.shl
+
+    global.get $len_ptr
+    i32.add
     local.get $len
     f64.store
   )
