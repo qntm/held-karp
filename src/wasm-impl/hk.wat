@@ -18,8 +18,6 @@
 
   ;; globals
 
-  (global $BYTES_PER_INT32 i32 (i32.const 4))
-
   (global $n (mut i32) (i32.const 0))
   (global $nminus1 (mut i32) (i32.const 0))
 
@@ -85,7 +83,7 @@
     local.get $u
     i32.add
 
-    global.get $BYTES_PER_INT32
+    i32.const 4 ;; bytes per i32
     i32.mul
 
     global.get $prev_ptr
