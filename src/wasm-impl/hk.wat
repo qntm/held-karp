@@ -28,7 +28,8 @@
 
   ;; memory lookup functions
 
-  (func $get_d_ptr (param $u i32) (param $v i32) (result i32)
+  ;; get d[u][v] from memory address OFFSET + (N * U + V) * 8
+  (func $get_d (param $u i32) (param $v i32) (result f64)
     global.get $n
     local.get $u
     i32.mul
@@ -37,11 +38,7 @@
 
     i32.const 3 ;; 2^3 bytes per f64
     i32.shl
-  )
 
-  ;; get d[u][v] from memory address OFFSET + (N * U + V) * 8
-  (func $get_d (param $u i32) (param $v i32) (result f64)
-    (call $get_d_ptr (local.get $u) (local.get $v))
     f64.load
   )
 
