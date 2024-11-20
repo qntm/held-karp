@@ -225,10 +225,11 @@
     ))
 
     ;; Close the loop
-    ;; no need to initialise $bestL
-    (local.set $bestU (i32.const -1))
+    (local.set $bestL (f64.const inf))
+    ;; no need to initialise $bestU
     (local.set $u (global.get $nminus1))
     (loop $u_loop
+      ;; $u--
       (local.set $u (i32.sub (local.get $u) (i32.const 1)))
 
       ;; $l = len[all][u] + d[u][n - 1]
@@ -239,18 +240,14 @@
         )
       )
 
-      ;; if $bestU === -1 or $l < $bestL 
-      (if (i32.or
-        (i32.eq (local.get $bestU) (i32.const -1))
-        (f64.lt (local.get $l) (local.get $bestL))
-      )
+      ;; if $l <= $bestL
+      (if (f64.le (local.get $l) (local.get $bestL))
         (then
           (local.set $bestL (local.get $l))
           (local.set $bestU (local.get $u))
         )
       )
 
-      ;; $u--
       (if (local.get $u)
         (then
           br $u_loop

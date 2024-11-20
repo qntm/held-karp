@@ -78,13 +78,13 @@ export const getCycle = d => {
   }
 
   // Close the loop
-  let bestL = 0
-  let bestU = -1
+  let bestL = Infinity
+  let bestU = -1 // don't really need to initialise this
   let u = n - 1
   do {
     u--
     const l = len[(n - 1) * all + u] + d[u][n - 1]
-    if (bestU === -1 || l < bestL) {
+    if (l <= bestL) {
       bestL = l
       bestU = u
     }
