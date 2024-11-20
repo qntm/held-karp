@@ -19,7 +19,6 @@
   ;; globals
 
   (global $BYTES_PER_INT32 i32 (i32.const 4))
-  (global $BYTES_PER_FLOAT64 i32 (i32.const 8))
 
   (global $n (mut i32) (i32.const 0))
   (global $nminus1 (mut i32) (i32.const 0))
@@ -39,7 +38,7 @@
     local.get $v
     i32.add
 
-    global.get $BYTES_PER_FLOAT64
+    i32.const 8 ;; bytes per f64
     i32.mul
 
     global.get $d_ptr
@@ -59,7 +58,7 @@
     local.get $u
     i32.add
 
-    global.get $BYTES_PER_FLOAT64
+    i32.const 8 ;; bytes per f64
     i32.mul
 
     global.get $len_ptr
@@ -123,13 +122,13 @@
     (global.set $nminus1 (i32.sub (global.get $n) (i32.const 1)))
 
     ;; compute size of `d` in memory: n * n * bytes per f64
-    (local.set $d_size (i32.mul (i32.mul (global.get $n) (global.get $n)) (global.get $BYTES_PER_FLOAT64)))
+    (local.set $d_size (i32.mul (i32.mul (global.get $n) (global.get $n)) (i32.const 8)))
 
     ;; compute location of `len` in memory
     (global.set $len_ptr (i32.add (global.get $d_ptr) (local.get $d_size)))
 
     ;; compute size of `len` in memory: 2^(n - 1) * (n - 1) * bytes per f64
-    (local.set $len_size (i32.mul (i32.mul (i32.shl (i32.const 1) (global.get $nminus1)) (global.get $nminus1)) (global.get $BYTES_PER_FLOAT64)))
+    (local.set $len_size (i32.mul (i32.mul (i32.shl (i32.const 1) (global.get $nminus1)) (global.get $nminus1)) (i32.const 8)))
 
     ;; compute location of `prev` in memory
     (global.set $prev_ptr (i32.add (global.get $len_ptr) (local.get $len_size)))
