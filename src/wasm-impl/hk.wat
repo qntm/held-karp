@@ -1,7 +1,7 @@
 ;; turn this into WASM using e.g. `wat2wasm hk.wat -o hk.wasm`
 ;; JS: 6.828s
 ;; optimised best: 8.497s
-;; qntm's best: 12.216s
+;; qntm's best: 11.964s
 
 (module
   (import "js" "n" (global $js_n f64))
@@ -219,43 +219,35 @@
     ))
 
     ;; Close the loop
-    (if (global.get $nminus1)
-      (then
-        ;; no need to initialise $bestL
-        (local.set $bestU (i32.const -1))
-        (local.set $u (i32.const 0))
-        (block $u_block (loop $u_loop
-          (br_if $u_block (i32.eq (local.get $u) (global.get $nminus1)))
+    ;; no need to initialise $bestL
+    (local.set $bestU (i32.const -1))
+    (local.set $u (i32.const 0))
+    (block $u_block (loop $u_loop
+      (br_if $u_block (i32.eq (local.get $u) (global.get $nminus1)))
 
-          ;; $l = len[all][u] + d[u][n - 1]
-          (local.set $l
-            (f64.add
-              (call $get_len (local.get $all) (local.get $u))
-              (call $get_d (local.get $u) (global.get $nminus1))
-            )
-          )
-
-          ;; if $bestU === -1 or $l < $bestL 
-          (if (i32.or
-            (i32.eq (local.get $bestU) (i32.const -1))
-            (f64.lt (local.get $l) (local.get $bestL))
-          )
-            (then
-              (local.set $bestL (local.get $l))
-              (local.set $bestU (local.get $u))
-            )
-          )
-
-          ;; $u++
-          (local.set $u (i32.add (local.get $u) (i32.const 1)))
-          br $u_loop
-        ))
+      ;; $l = len[all][u] + d[u][n - 1]
+      (local.set $l
+        (f64.add
+          (call $get_len (local.get $all) (local.get $u))
+          (call $get_d (local.get $u) (global.get $nminus1))
+        )
       )
-      (else
-        ;; no need to set $bestL
-        (local.set $bestU (global.get $nminus1))
+
+      ;; if $bestU === -1 or $l < $bestL 
+      (if (i32.or
+        (i32.eq (local.get $bestU) (i32.const -1))
+        (f64.lt (local.get $l) (local.get $bestL))
       )
-    )
+        (then
+          (local.set $bestL (local.get $l))
+          (local.set $bestU (local.get $u))
+        )
+      )
+
+      ;; $u++
+      (local.set $u (i32.add (local.get $u) (i32.const 1)))
+      br $u_loop
+    ))
 
     (local.get $bestU)
     f64.convert_i32_s

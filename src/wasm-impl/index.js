@@ -14,6 +14,10 @@ const wasmBuffer = await fs.readFile(new URL('hk.wasm', import.meta.url))
 export const getCycle = async d => {
   const n = d.length
 
+  if (n === 1) {
+    return { l: 0, cycle: [0, 0] }
+  }
+
   const dSize = n * n * BYTES_PER_FLOAT64 // for `d[u][v]`
   const lenSize = 2 ** (n - 1) * (n - 1) * BYTES_PER_FLOAT64 // for `len[S][k]`
   const prevSize = 2 ** (n - 1) * (n - 1) * BYTES_PER_INT32 // for `prev[S][k]`

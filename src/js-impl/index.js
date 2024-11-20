@@ -8,6 +8,11 @@
 
 export const getCycle = d => {
   const n = d.length
+
+  if (n === 1) {
+    return { l: 0, cycle: [0, 0] }
+  }
+
   const all = (1 << (n - 1)) - 1
 
   /*
@@ -73,28 +78,21 @@ export const getCycle = d => {
   }
 
   // Close the loop
-  let bestL
-  let bestU
-  if (n - 1) {
-    // no need to initialise `bestL`
-    bestU = -1
-    let u = 0
-    while (u < n - 1) {
-      const l = len[(n - 1) * all + u] + d[u][n - 1]
-      if (bestU === -1 || l < bestL) {
-        bestL = l
-        bestU = u
-      }
-      u++
+  let bestL = 0
+  let bestU = -1
+  let u = 0
+  while (u < n - 1) {
+    const l = len[(n - 1) * all + u] + d[u][n - 1]
+    if (bestU === -1 || l < bestL) {
+      bestL = l
+      bestU = u
     }
-  } else {
-    bestL = 0
-    bestU = n - 1
+    u++
   }
 
   // Trace backwards through the optimal path
   let cycle = [n - 1]
-  let u = bestU
+  u = bestU
   S = all
   while (u !== n - 1) {
     cycle.unshift(u)
