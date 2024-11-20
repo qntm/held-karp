@@ -1,7 +1,7 @@
 ;; turn this into WASM using e.g. `wat2wasm hk.wat -o hk.wasm`
-;; JS: 6.828s
+;; JS: 5.447s
 ;; optimised best: 8.497s
-;; qntm's best: 11.964s
+;; qntm's best: 10.375s
 
 (module
   (import "js" "n" (global $js_n f64))
@@ -142,10 +142,10 @@
       ;; break if $s > $all
       (br_if $s_block (i32.gt_u (local.get $s) (local.get $all)))
 
-      (local.set $v (i32.const 0))
-      (block $v_block (loop $v_loop
-        ;; break if v = n - 1
-        (br_if $v_block (i32.eq (local.get $v) (global.get $nminus1)))
+      (local.set $v (global.get $nminus1))
+      (loop $v_loop
+        ;; $v--
+        (local.set $v (i32.sub (local.get $v) (i32.const 1)))
 
         ;; Compute S2 = S ^ (1 << v)
         (local.set $s2 (i32.xor (local.get $s) (i32.shl (i32.const 1) (local.get $v))))
@@ -157,9 +157,10 @@
               (then
                 ;; no need to initialise $bestL
                 (local.set $bestU (i32.const -1))
-                (local.set $u (i32.const 0))
-                (block $u_block (loop $u_loop
-                  (br_if $u_block (i32.eq (local.get $u) (global.get $nminus1)))
+                (local.set $u (global.get $nminus1))
+                (loop $u_loop
+                  ;; $u--
+                  (local.set $u (i32.sub (local.get $u) (i32.const 1)))
 
                   ;; Is u in S2? Compute S2 & (1 << u)
                   (if (i32.and
@@ -188,10 +189,12 @@
                     )
                   )
 
-                  ;; $u++
-                  (local.set $u (i32.add (local.get $u) (i32.const 1)))
-                  br $u_loop
-                ))
+                  (if (local.get $u)
+                    (then
+                      br $u_loop
+                    )
+                  )
+                )
               )
               (else
                 ;; no `u` distinct from `v` can be found
@@ -209,10 +212,12 @@
           )
         )
 
-        ;; $v++
-        (local.set $v (i32.add (local.get $v) (i32.const 1)))
-        br $v_loop
-      ))
+        (if (local.get $v)
+          (then
+            br $v_loop
+          )
+        )
+      )
 
       ;; $s++
       (local.set $s (i32.add (local.get $s) (i32.const 1)))
@@ -222,9 +227,9 @@
     ;; Close the loop
     ;; no need to initialise $bestL
     (local.set $bestU (i32.const -1))
-    (local.set $u (i32.const 0))
-    (block $u_block (loop $u_loop
-      (br_if $u_block (i32.eq (local.get $u) (global.get $nminus1)))
+    (local.set $u (global.get $nminus1))
+    (loop $u_loop
+      (local.set $u (i32.sub (local.get $u) (i32.const 1)))
 
       ;; $l = len[all][u] + d[u][n - 1]
       (local.set $l
@@ -245,10 +250,13 @@
         )
       )
 
-      ;; $u++
-      (local.set $u (i32.add (local.get $u) (i32.const 1)))
-      br $u_loop
-    ))
+      ;; $u--
+      (if (local.get $u)
+        (then
+          br $u_loop
+        )
+      )
+    )
 
     (local.get $bestU)
     f64.convert_i32_s

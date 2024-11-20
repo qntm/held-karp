@@ -40,8 +40,9 @@ export const getCycle = d => {
 
   let S = 1
   while (S <= all) {
-    let v = 0
-    while (v < n - 1) {
+    let v = n - 1
+    do {
+      v--
       const S2 = S ^ (1 << v)
       // Is v in S?
       if (S2 < S) {
@@ -50,8 +51,9 @@ export const getCycle = d => {
         if (S2) {
           // no need to initialise `bestL`
           bestU = -1
-          let u = 0
-          while (u < n - 1) {
+          let u = n - 1
+          do {
+            u--
             // Is u in S2?
             if (S2 & (1 << u)) {
               const l = len[(n - 1) * S2 + u] + d[u][v]
@@ -60,8 +62,7 @@ export const getCycle = d => {
                 bestU = u
               }
             }
-            u++
-          }
+          } while (u)
         } else {
           // If no `u` distinct from `v` can be found,
           // `S` has only a single element, `v`. So: base case
@@ -72,23 +73,22 @@ export const getCycle = d => {
         len[(n - 1) * S + v] = bestL
         prev[(n - 1) * S + v] = bestU
       }
-      v++
-    }
+    } while (v)
     S++
   }
 
   // Close the loop
   let bestL = 0
   let bestU = -1
-  let u = 0
-  while (u < n - 1) {
+  let u = n - 1
+  do {
+    u--
     const l = len[(n - 1) * all + u] + d[u][n - 1]
     if (bestU === -1 || l < bestL) {
       bestL = l
       bestU = u
     }
-    u++
-  }
+  } while (u)
 
   // Trace backwards through the optimal path
   let cycle = [n - 1]
