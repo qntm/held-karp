@@ -49,15 +49,15 @@ export const getCycle = d => {
         let bestL = 0
         let bestU = 0
         if (S2) {
-          // no need to initialise `bestL`
-          bestU = -1
+          bestL = Infinity
+          // no need to initialise `bestU`
           let u = n - 1
           do {
             u--
             // Is u in S2?
             if (S2 & (1 << u)) {
               const l = len[(n - 1) * S2 + u] + d[u][v]
-              if (bestU === -1 || l < bestL) {
+              if (l <= bestL) {
                 bestL = l
                 bestU = u
               }

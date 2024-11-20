@@ -106,7 +106,7 @@ describe('held-karp', () => {
         ]
 
         assert.deepEqual(await impl.getCycle(cities), { l: 253, cycle: [0, 8, 10, 1, 6, 2, 5, 9, 3, 4, 7, 0].reverse() })
-        assert.deepEqual(await impl.getPath(cities), { l: 160, path: [9, 5, 3, 4, 2, 7, 0, 8, 10, 1, 6].reverse() })
+        assert.deepEqual(await impl.getPath(cities), { l: 160, path: [9, 5, 3, 4, 0, 8, 7, 2, 10, 1, 6].reverse() })
       })
     })
   })
