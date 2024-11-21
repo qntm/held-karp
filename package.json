@@ -8,7 +8,7 @@
     "./wasm": "./src/wasm-impl/index.js"
   },
   "scripts": {
-    "build": "npx wat2wasm ./src/wasm-impl/hk.wat -o ./src/wasm-impl/hk.wasm",
+    "build": "npx wat2wasm ./src/wasm-impl/hk.wat -o ./src/wasm-impl/hk.wasm && npx wasm-opt ./src/wasm-impl/hk.wasm -O4 -o ./src/wasm-impl/hk-opt.wasm",
     "eslint": "eslint .",
     "mocha": "c8 --100 node ./node_modules/mocha/bin/mocha.js ./test/**/*.test.js",
     "perf": "node ./examples/perf.js",
@@ -19,6 +19,7 @@
   "author": "qntm",
   "license": "MIT",
   "devDependencies": {
+    "binaryen": "^120.0.0",
     "c8": "^10.1.2",
     "eslint": "^9.14.0",
     "mocha": "^10.8.2",
