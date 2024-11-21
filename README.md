@@ -9,7 +9,7 @@ npm install held-karp
 Held–Karp is the best known [*exact* algorithm for TSP](https://en.wikipedia.org/wiki/Travelling_salesman_problem#Exact_algorithms), and requires [*O*(*n*<sup>2</sup>2<sup>*n*</sup>) time and *O*(*n*2<sup>*n*</sup>) space](https://en.wikipedia.org/wiki/Held%E2%80%93Karp_algorithm#Algorithmic_complexity). Execution time and memory usage are therefore significant considerations as *n* grows.
 
 * The JavaScript implementation computes optimal Hamiltonian cycles for **up to 28 cities** (paths for up to 27 cities). This consumes approximately 31 GiB of memory and takes ~5 minutes.
-* The WebAssembly implementation computes optimal Hamiltonian cycles for **up to 24 cities** (paths for up to 23 cities). This consumes approximately 4 GiB of memory and takes ~15.5 seconds.
+* The WebAssembly implementation computes optimal Hamiltonian cycles for **up to 24 cities** (paths for up to 23 cities). This consumes approximately 4 GiB of memory and takes ~15 seconds.
 
 See [Performance](#performance) for further discussion of these limits.
 
@@ -94,34 +94,19 @@ For performance tests, run _e.g._ `npm run perf -- 24`, specifying whatever numb
 
 Internally, Held–Karp works by computing a large table of intermediate results, then reading an optimal cycle out of the table. The principal limitation for our purposes is the size of the array we can allocate to store these results, which must have 2<sup>*n* - 1</sup>(*n* - 1) entries.
 
-The JavaScript implementation is highly optimised. It uses a `Float64Array` to store intermediate path lengths and a `Uint8Array` to store intermediate city IDs. The maximum number of elements of a [typed array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Typed_arrays) in JavaScript is 2<sup>32</sup> - 1 = 4,294,967,296, which means we're **capped at *n* = 28** (3,623,878,656 elements). At 8 bytes per element in the `Float64Array` and 1 byte per element in the `Uint8Array`, the two arrays consume 30.4GiB of memory, plus change. Running time obviously varies depending on how much memory Node.js has available, but seems to be in the 4.5–7 minute range in this case. For *n* = 24, running time is more like 15 seconds.
+### Memory usage
 
-WebAssembly has `f64`s but no `i8`s; the smallest numerical type it has is an `i32`. That means we're looking at 8 bytes per intermediate path length and 4 bytes per intermediate city ID. WebAssembly is also [capped at 4GiB](https://developer.mozilla.org/en-US/docs/WebAssembly/JavaScript_interface/Memory/Memory#:~:text=Wasm%20currently%20only%20allows%2032%2Dbit%20addressing), which in turn **caps us at *n* = 24** (192,937,984 elements per array, 2.2GiB of memory across the two arrays). The WebAssembly has been *somewhat* hand-optimised, but...
+The JavaScript implementation uses a `Float64Array` to store intermediate path lengths and a `Uint8Array` to store intermediate city IDs. The maximum number of elements of a [typed array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Typed_arrays) in JavaScript is 2<sup>32</sup> - 1 = 4,294,967,296, which means we're capped at ***n* = 28** (3,623,878,656 elements). At 8 bytes per element in the `Float64Array` and 1 byte per element in the `Uint8Array`, the two arrays consume 30.4GiB of memory, plus change. 
+
+WebAssembly has `f64`s but no `i8`s; the smallest numerical type it has is an `i32`. That means we're looking at 8 bytes per intermediate path length and 4 bytes per intermediate city ID. WebAssembly is also [capped at 4GiB](https://developer.mozilla.org/en-US/docs/WebAssembly/JavaScript_interface/Memory/Memory#:~:text=Wasm%20currently%20only%20allows%2032%2Dbit%20addressing), which in turn caps us at ***n* = 24** (192,937,984 elements per array, 2.2GiB of memory across the two arrays). 
+
+### Execution speed
+
+Both implementations have been highly optimised at this point, [using `wasm-opt`](https://github.com/WebAssembly/binaryen?tab=readme-ov-file#wasm-opt) in the case of the WebAssembly implementation. The JavaScript implementation seems to be around 20% faster than the WebAssembly implementation. For *n* = 24, we currently see results like:
 
 ```
-n = 24
-
-{
-  l: 3.5102663956036024,
-  cycle: [
-     0, 17, 11, 2,  6,  3, 12, 21,
-    19,  8, 13, 5, 18, 14,  1, 20,
-    23,  7,  9, 4, 22, 16, 15, 10,
-     0
-  ]
-}
-HK/JS: 15.071s
-
-{
-  l: 3.5102663956036024,
-  cycle: [
-     0, 17, 11, 2,  6,  3, 12, 21,
-    19,  8, 13, 5, 18, 14,  1, 20,
-    23,  7,  9, 4, 22, 16, 15, 10,
-     0
-  ]
-}
-HK/WASM: 33.295s
+HK/JS: 12.973s
+HK/WASM: 15.829s
 ```
 
-...it looks like it still falls quite a long way short of the JavaScript optimisations built into [Node.js](https://nodejs.org)/[V8](https://v8.dev/2)/[TurboFan](https://v8.dev/docs/turbofan). To be continued!</p>
+It's not clear whether it's possible to bring the WebAssembly to parity here as we do not have access to the full capabilities of native code which are available to [Node.js](https://nodejs.org)/[V8](https://v8.dev/2)/[TurboFan](https://v8.dev/docs/turbofan).
