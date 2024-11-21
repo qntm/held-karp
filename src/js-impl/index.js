@@ -38,8 +38,9 @@ export const getCycle = d => {
   */
   const prev = new Uint8Array((1 << (n - 1)) * (n - 1))
 
-  let S = 1
-  while (S <= all) {
+  let S = 0
+  do {
+    S++
     let v = n - 1
     do {
       v--
@@ -74,8 +75,7 @@ export const getCycle = d => {
         prev[(n - 1) * S + v] = bestU
       }
     } while (v)
-    S++
-  }
+  } while (S < all)
 
   // Close the loop
   let bestL = Infinity
