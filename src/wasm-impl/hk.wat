@@ -14,9 +14,9 @@
 
   ;; memory locations
 
-  (global $len_ptr (mut i32) (i32.const 0))
-  (global $d_ptr (mut i32) (i32.const 0))
-  (global $prev_ptr (mut i32) (i32.const 0))
+  (global $len_ptr i32 (i32.const 0)) ;; optimiser elides this
+  (global $d_ptr (mut i32) (i32.const 0)) ;; we compute this at startup
+  (global $prev_ptr (mut i32) (i32.const 0)) ;; we compute this at startup
 
   ;; memory lookup functions
 
@@ -132,12 +132,12 @@
     (local.set $s (i32.const 0))
     (loop $s_loop
       ;; $s++
-      (local.set $s (i32.add (local.get $s) (i32.const 1)))
+      (local.tee $s (i32.add (local.get $s) (i32.const 1)))
 
       (local.set $v (global.get $nminus1))
       (loop $v_loop
         ;; $v--
-        (local.set $v (i32.sub (local.get $v) (i32.const 1)))
+        (local.tee $v (i32.sub (local.get $v) (i32.const 1)))
 
         ;; Compute S2 = S ^ (1 << v)
         (local.set $s2 (i32.xor (local.get $s) (i32.shl (i32.const 1) (local.get $v))))
@@ -153,7 +153,7 @@
                 (local.set $u (global.get $nminus1))
                 (loop $u_loop
                   ;; $u--
-                  (local.set $u (i32.sub (local.get $u) (i32.const 1)))
+                  (local.tee $u (i32.sub (local.get $u) (i32.const 1)))
 
                   ;; Is u in S2? Compute S2 & (1 << u)
                   (if (i32.and
@@ -179,7 +179,7 @@
                     )
                   )
 
-                  (br_if $u_loop (local.get $u))
+                  br_if $u_loop
                 )
               )
               (else
@@ -197,10 +197,10 @@
           )
         )
 
-        (br_if $v_loop (local.get $v))
+        br_if $v_loop
       )
 
-      (br_if $s_loop (i32.lt_u (local.get $s) (local.get $all)))
+      (br_if $s_loop (i32.lt_u (local.get $all)))
     )
 
     ;; Close the loop
@@ -209,7 +209,7 @@
     (local.set $u (global.get $nminus1))
     (loop $u_loop
       ;; $u--
-      (local.set $u (i32.sub (local.get $u) (i32.const 1)))
+      (local.tee $u (i32.sub (local.get $u) (i32.const 1)))
 
       ;; $l = len[all][u] + d[u][n - 1]
       (local.set $l
@@ -227,7 +227,7 @@
         )
       )
 
-      (br_if $u_loop (local.get $u))
+      br_if $u_loop
     )
 
     (local.get $bestU)
