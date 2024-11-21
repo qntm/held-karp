@@ -92,9 +92,9 @@ Same as the JavaScript implementation except that `getPath` is asynchronous.
 
 For performance tests, run _e.g._ `npm run perf -- 24`, specifying whatever number of cities you wish. *n* cities will be placed randomly in a unit square, distances between them will be computed, then HK will be carried out to determine a cycle, capturing timings. Both the JavaScript and WebAssembly implementations will be exercised.
 
-Internally, Held–Karp works by computing a large table of intermediate results, then reading an optimal cycle out of the table. The principal limitation for our purposes is the size of the array we can allocate to store these results, which must have 2<sup>*n* - 1</sup>(*n* - 1) entries.
-
 ### Memory usage
+
+Internally, Held–Karp works by computing a large table of intermediate results, then reading an optimal cycle out of the table. The principal limitation for our purposes is the size of the array we can allocate to store these results, which must have 2<sup>*n* - 1</sup>(*n* - 1) entries.
 
 The JavaScript implementation uses a `Float64Array` to store intermediate path lengths and a `Uint8Array` to store intermediate city IDs. The maximum number of elements of a [typed array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Typed_arrays) in JavaScript is 2<sup>32</sup> - 1 = 4,294,967,296, which means we're capped at ***n* = 28** (3,623,878,656 elements). At 8 bytes per element in the `Float64Array` and 1 byte per element in the `Uint8Array`, the two arrays consume 30.4GiB of memory, plus change. 
 
