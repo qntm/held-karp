@@ -1,7 +1,4 @@
 ;; turn this into WASM using e.g. `wat2wasm hk.wat -o hk.wasm`
-;; JS: 5.447s
-;; optimised best: 8.497s
-;; qntm's best: 10.375s
 
 (module
   (import "js" "n" (global $js_n f64))
@@ -23,8 +20,7 @@
 
   ;; memory lookup functions
 
-  ;; get d[u][v] from memory address OFFSET + (N * U + V) * 8
-  (func $get_d (param $u i32) (param $v i32) (result f64)
+  (func $get_d_ptr (param $u i32) (param $v i32) (result i32)
     global.get $n
     local.get $u
     i32.mul
@@ -36,11 +32,15 @@
 
     global.get $d_ptr
     i32.add
+  )
+
+  ;; get d[u][v] from memory address OFFSET + (N * U + V) * 8
+  (func $get_d (param $u i32) (param $v i32) (result f64)
+    (call $get_d_ptr (local.get $u) (local.get $v))
     f64.load
   )
 
-  ;; get len[S][u] from memory address OFFSET + ((N - 1) * S + u) * 8
-  (func $get_len (param $s i32) (param $u i32) (result f64)
+  (func $get_len_ptr (param $s i32) (param $u i32) (result i32)
     global.get $nminus1
     local.get $s
     i32.mul
@@ -52,28 +52,22 @@
 
     global.get $len_ptr
     i32.add
+  )
+
+  ;; get len[S][u] from memory address OFFSET + ((N - 1) * S + u) * 8
+  (func $get_len (param $s i32) (param $u i32) (result f64)
+    (call $get_len_ptr (local.get $s) (local.get $u))
     f64.load
   )
 
   ;; set len[S][u]
   (func $set_len (param $s i32) (param $u i32) (param $len f64)
-    global.get $nminus1
-    local.get $s
-    i32.mul
-    local.get $u
-    i32.add
-
-    global.get $BYTES_PER_FLOAT64
-    i32.mul
-
-    global.get $len_ptr
-    i32.add
+    (call $get_len_ptr (local.get $s) (local.get $u))
     local.get $len
     f64.store
   )
 
-  ;; set prev[S][u] at memory address OFFSET + ((N - 1) * S + u) * 4
-  (func $set_prev (param $s i32) (param $u i32) (param $prev i32)
+  (func $get_prev_ptr (param $s i32) (param $u i32) (result i32)
     global.get $nminus1
     local.get $s
     i32.mul
@@ -85,7 +79,11 @@
 
     global.get $prev_ptr
     i32.add
+  )
 
+  ;; set prev[S][u] at memory address OFFSET + ((N - 1) * S + u) * 4
+  (func $set_prev (param $s i32) (param $u i32) (param $prev i32)
+    (call $get_prev_ptr (local.get $s) (local.get $u))
     local.get $prev
     i32.store
   )
@@ -134,12 +132,12 @@
     (local.set $s (i32.const 0))
     (loop $s_loop
       ;; $s++
-      (local.set $s (i32.add (local.get $s) (i32.const 1)))
+      (local.tee $s (i32.add (local.get $s) (i32.const 1)))
 
       (local.set $v (global.get $nminus1))
       (loop $v_loop
         ;; $v--
-        (local.set $v (i32.sub (local.get $v) (i32.const 1)))
+        (local.tee $v (i32.sub (local.get $v) (i32.const 1)))
 
         ;; Compute S2 = S ^ (1 << v)
         (local.set $s2 (i32.xor (local.get $s) (i32.shl (i32.const 1) (local.get $v))))
@@ -151,10 +149,11 @@
               (then
                 (local.set $bestL (f64.const inf))
                 ;; no need to initialise $bestU
+
                 (local.set $u (global.get $nminus1))
                 (loop $u_loop
                   ;; $u--
-                  (local.set $u (i32.sub (local.get $u) (i32.const 1)))
+                  (local.tee $u (i32.sub (local.get $u) (i32.const 1)))
 
                   ;; Is u in S2? Compute S2 & (1 << u)
                   (if (i32.and
@@ -180,7 +179,7 @@
                     )
                   )
 
-                  (br_if $u_loop (local.get $u))
+                  br_if $u_loop
                 )
               )
               (else
@@ -199,10 +198,10 @@
           )
         )
 
-        (br_if $v_loop (local.get $v))
+        br_if $v_loop
       )
 
-      (br_if $s_loop (i32.lt_u (local.get $s) (local.get $all)))
+      (br_if $s_loop (i32.lt_u (local.get $all)))
     )
 
     ;; Close the loop
