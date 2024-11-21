@@ -116,7 +116,7 @@
     (local.set $len_size (i32.mul (i32.mul (i32.shl (i32.const 1) (global.get $nminus1)) (global.get $nminus1)) (global.get $BYTES_PER_FLOAT64)))
 
     ;; compute location of `d` in memory
-    (global.set $d_ptr (local.get $len_size))
+    (global.set $d_ptr (i32.add (global.get $len_ptr) (local.get $len_size)))
 
     ;; compute size of `d` in memory: n * n * bytes per f64
     (local.set $d_size (i32.mul (i32.mul (global.get $n) (global.get $n)) (global.get $BYTES_PER_FLOAT64)))
@@ -185,10 +185,9 @@
               (else
                 ;; no `u` distinct from `v` can be found
                 ;; `S` has only a single element, `v`. So: base case
-                ;; $bestL = d[n - 1][v]
-                (local.set $bestL
-                  (call $get_d (global.get $nminus1) (local.get $v))
-                )
+                ;; len[S][v] = d[n - 1][v]
+                ;; prev[S][v] = n - 1
+                (local.set $bestL (call $get_d (global.get $nminus1) (local.get $v)))
                 (local.set $bestU (global.get $nminus1))
               )
             )
@@ -210,7 +209,7 @@
     (local.set $u (global.get $nminus1))
     (loop $u_loop
       ;; $u--
-      (local.set $u (i32.sub (local.get $u) (i32.const 1)))
+      (local.tee $u (i32.sub (local.get $u) (i32.const 1)))
 
       ;; $l = len[all][u] + d[u][n - 1]
       (local.set $l
@@ -228,7 +227,7 @@
         )
       )
 
-      (br_if $u_loop (local.get $u))
+      br_if $u_loop
     )
 
     (local.get $bestU)
