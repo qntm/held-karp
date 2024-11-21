@@ -9,7 +9,7 @@ const BYTES_PER_INT32 = 4
 const BYTES_PER_FLOAT64 = 8
 const BYTES_PER_PAGE = 65_536
 
-const wasmBuffer = await fs.readFile(new URL('hk.wasm', import.meta.url))
+const wasmBuffer = await fs.readFile(new URL('hk-opt.wasm', import.meta.url))
 
 export const getCycle = async d => {
   const n = d.length
