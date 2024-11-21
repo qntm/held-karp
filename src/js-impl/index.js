@@ -8,6 +8,11 @@
 
 export const getCycle = d => {
   const n = d.length
+
+  if (n === 1) {
+    return { l: 0, cycle: [0, 0] }
+  }
+
   const all = (1 << (n - 1)) - 1
 
   /*
@@ -33,30 +38,32 @@ export const getCycle = d => {
   */
   const prev = new Uint8Array((1 << (n - 1)) * (n - 1))
 
-  let S = 1
-  while (S <= all) {
-    let v = 0
-    while (v < n - 1) {
+  let S = 0
+  do {
+    S++
+    let v = n - 1
+    do {
+      v--
       const S2 = S ^ (1 << v)
       // Is v in S?
       if (S2 < S) {
         let bestL = 0
         let bestU = 0
         if (S2) {
-          // no need to initialise `bestL`
-          bestU = -1
-          let u = 0
-          while (u < n - 1) {
+          bestL = Infinity
+          // no need to initialise `bestU`
+          let u = n - 1
+          do {
+            u--
             // Is u in S2?
             if (S2 & (1 << u)) {
               const l = len[(n - 1) * S2 + u] + d[u][v]
-              if (bestU === -1 || l < bestL) {
+              if (l <= bestL) {
                 bestL = l
                 bestU = u
               }
             }
-            u++
-          }
+          } while (u)
         } else {
           // If no `u` distinct from `v` can be found,
           // `S` has only a single element, `v`. So: base case
@@ -67,34 +74,25 @@ export const getCycle = d => {
         len[(n - 1) * S + v] = bestL
         prev[(n - 1) * S + v] = bestU
       }
-      v++
-    }
-    S++
-  }
+    } while (v)
+  } while (S < all)
 
   // Close the loop
-  let bestL
-  let bestU
-  if (n - 1) {
-    // no need to initialise `bestL`
-    bestU = -1
-    let u = 0
-    while (u < n - 1) {
-      const l = len[(n - 1) * all + u] + d[u][n - 1]
-      if (bestU === -1 || l < bestL) {
-        bestL = l
-        bestU = u
-      }
-      u++
+  let bestL = Infinity
+  let bestU = -1 // don't really need to initialise this
+  let u = n - 1
+  do {
+    u--
+    const l = len[(n - 1) * all + u] + d[u][n - 1]
+    if (l <= bestL) {
+      bestL = l
+      bestU = u
     }
-  } else {
-    bestL = 0
-    bestU = n - 1
-  }
+  } while (u)
 
   // Trace backwards through the optimal path
   let cycle = [n - 1]
-  let u = bestU
+  u = bestU
   S = all
   while (u !== n - 1) {
     cycle.unshift(u)
