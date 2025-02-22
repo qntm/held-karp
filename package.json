@@ -1,6 +1,6 @@
 {
   "name": "held-karp",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "description": "Highly optimised implementation of the Held–Karp algorithm for exact solutions to the travelling salesman problem",
   "type": "module",
   "exports": {
