@@ -1,16 +1,15 @@
 {
   "name": "held-karp",
   "version": "1.0.10",
-  "description": "Highly optimised implementation of the Held–Karp algorithm for exact solutions to the travelling salesman problem",
+  "description": "Highly optimized implementation of the Held–Karp algorithm for exact solutions to the traveling salesman problem",
   "type": "module",
   "exports": {
     ".": "./src/js-impl/index.js",
     "./wasm": "./src/wasm-impl/index.js"
   },
   "keywords": [
-    "traveling",
-    "travelling",
-    "salesman",
+    "traveling salesman",
+    "travelling salesman",
     "problem",
     "TSP",
     "Hamiltonian",
