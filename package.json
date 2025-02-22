@@ -1,12 +1,25 @@
 {
   "name": "held-karp",
   "version": "1.0.9",
-  "description": "Held-Karp algorithm for the travelling salesman problem",
+  "description": "Highly optimised implementation of the Held–Karp algorithm for exact solutions to the travelling salesman problem",
   "type": "module",
   "exports": {
     ".": "./src/js-impl/index.js",
     "./wasm": "./src/wasm-impl/index.js"
   },
+  "keywords": [
+    "traveling",
+    "travelling",
+    "salesman",
+    "problem",
+    "TSP",
+    "Hamiltonian"
+    "path",
+    "cycle",
+    "Held-Karp",
+    "algorithm",
+    "NP-hard"
+  ],
   "homepage": "https://github.com/qntm/held-karp",
   "repository": {
     "type": "git",
