@@ -13,7 +13,7 @@
     "salesman",
     "problem",
     "TSP",
-    "Hamiltonian"
+    "Hamiltonian",
     "path",
     "cycle",
     "Held-Karp",
