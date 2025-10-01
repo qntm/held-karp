@@ -36,7 +36,7 @@
   "author": "qntm",
   "license": "MIT",
   "devDependencies": {
-    "binaryen": "^123.0.0",
+    "binaryen": "^124.0.0",
     "c8": "^10.1.2",
     "eslint": "^9.14.0",
     "mocha": "^11.0.1",
