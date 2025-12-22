@@ -1,6 +1,5 @@
-/* global describe, it */
-
 import assert from 'node:assert/strict'
+import { describe, it } from 'node:mocha'
 
 import * as jsImpl from '../src/js-impl/index.js'
 import * as wasmImpl from '../src/wasm-impl/index.js'
