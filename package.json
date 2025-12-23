@@ -27,7 +27,7 @@
   "scripts": {
     "build": "npx wat2wasm ./src/wasm-impl/hk.wat -o ./src/wasm-impl/hk.wasm && npx wasm-opt ./src/wasm-impl/hk.wasm -O4 -o ./src/wasm-impl/hk-opt.wasm",
     "eslint": "eslint .",
-    "unit": "c8 --100 node --test",
+    "unit": "node --test --experimental-test-coverage",
     "perf": "node ./examples/perf.js",
     "tag": "node -e \"require('child_process').spawn('git', ['tag', `v${require('./package.json').version}`], { stdio: 'inherit' })\"",
     "tag-and-publish": "npm run tag && git push --tags && npm publish && npm version patch --no-git-tag-version && git add . && git commit -m \"Bump patch\" && git push",
@@ -37,7 +37,6 @@
   "license": "MIT",
   "devDependencies": {
     "binaryen": "^125.0.0",
-    "c8": "^10.1.2",
     "eslint": "^9.14.0",
     "neostandard": "^0.11.8",
     "wabt": "^1.0.36"
