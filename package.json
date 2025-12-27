@@ -27,7 +27,7 @@
   "scripts": {
     "build": "npx wat2wasm ./src/wasm-impl/hk.wat -o ./src/wasm-impl/hk.wasm && npx wasm-opt ./src/wasm-impl/hk.wasm -O4 -o ./src/wasm-impl/hk-opt.wasm",
     "eslint": "eslint .",
-    "unit": "node --test --experimental-test-coverage",
+    "unit": "node --test --experimental-test-coverage --test-coverage-functions=100",
     "perf": "node ./examples/perf.js",
     "tag": "node -e \"require('child_process').spawn('git', ['tag', `v${require('./package.json').version}`], { stdio: 'inherit' })\"",
     "tag-and-publish": "npm run tag && git push --tags && npm publish && npm version patch --no-git-tag-version && git add . && git commit -m \"Bump patch\" && git push",
