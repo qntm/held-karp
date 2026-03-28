@@ -15,7 +15,7 @@ export const getCycle = async d => {
   const n = d.length
 
   if (n === 1) {
-    return { l: 0, cycle: [0, 0] }
+    return { l: 0, cycle: [0] }
   }
 
   const lenSize = 2 ** (n - 1) * (n - 1) * BYTES_PER_FLOAT64 // for `len[S][k]`
@@ -73,8 +73,7 @@ export const getCycle = async d => {
   const i = cycle.indexOf(0)
   cycle = [
     ...cycle.slice(i, cycle.length),
-    ...cycle.slice(0, i),
-    0
+    ...cycle.slice(0, i)
   ]
 
   return { l: bestL, cycle }
@@ -96,9 +95,9 @@ export const getPath = async d => {
     )
   ])
 
-  // Eliminate new city 0 from the start and end of the cycle
+  // Eliminate new city 0 from the start of the cycle
   // and bump the rest back down
-  const path = cycle.slice(1, cycle.length - 1).map(k => k - 1)
+  const path = cycle.slice(1).map(k => k - 1)
 
   return { l, path }
 }
