@@ -125,4 +125,40 @@ describe('held-karp', () => {
 
     assert.deepEqual(await jsImpl.getPath(d), await wasmImpl.getPath(d))
   })
+
+  it('floating point weirdness', async () => {
+    /*
+      This package is safe to use with integers whose sum is less than `Number.MAX_SAFE_INTEGER`.
+      For floating point, we can't be so assertive.
+      Floating point addition is not associative.
+      This means that the "optimal cycle" can be difficult to identify.
+      A cycle which in theory is longer can in practice compute to a smaller overall length.
+
+      Here, the route from cities
+        0 -> 1 -> 2 -> 3 -> 0
+      has length
+        (Number.MAX_SAFE_INTEGER + 1) + 2 + 0 + 0
+        This is computed correctly as 9007199254740994
+
+      While the route from cities
+        0 -> 1 -> 3 -> 2 -> 0
+      has length
+        (Number.MAX_SAFE_INTEGER + 1) + 1 + 1 + 1
+        This should be 9007199254740995 but in fact is computed as 9007199254740992
+        This is what gets returned
+
+      Without sacrificing performance, there is nothing that we can do about this.
+      We can specify it however.
+    */
+    const d = [
+      [0, Number.MAX_SAFE_INTEGER, Infinity, Infinity],
+      [Infinity, 0, 2, 1],
+      [1, Infinity, 0, Infinity],
+      [0, Infinity, 1, Infinity]
+    ]
+    assert.deepEqual(jsImpl.getCycle(d), {
+      cycle: [0, 1, 3, 2, 0],
+      l: 9007199254740992
+    })
+  })
 })
