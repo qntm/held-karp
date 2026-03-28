@@ -151,7 +151,7 @@ describe('held-karp', () => {
       We can specify it however.
     */
     const d = [
-      [0, Number.MAX_SAFE_INTEGER, Infinity, Infinity],
+      [0, Number.MAX_SAFE_INTEGER + 1, Infinity, Infinity],
       [Infinity, 0, 2, 1],
       [1, Infinity, 0, Infinity],
       [0, Infinity, 1, Infinity]

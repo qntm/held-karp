@@ -105,6 +105,22 @@ export const getCycle = d => {
   const l = cycle
     .reduce((acc, u, i, cycle) => acc + d[u][cycle[i + 1 in cycle ? i + 1 : 0]], 0)
 
+  const l2 = [n - 1, ...cycle]
+    .reduce((acc, u, i, cycle2) => acc + (i + 1 in cycle2 ? d[u][cycle2[i + 1]] : 0), 0)
+  if (l2 !== bestL) {
+    throw Error(`bestL: ${bestL}, l2: ${l2}`)
+  }
+  /*
+    // `bestL` is CURRENTLY computed as the running total sum of distances
+    // starting and ending with city `n - 1`.
+    // We can prove this:
+
+    // However, the rotation below results in a cycle which starts and ends at city 0.
+    // This can have a slightly different floating point sum.
+    // TODO: rectify this somehow...
+  */
+
+
   // Rotate so that we start and end at city 0
   const i = cycle.indexOf(0)
   cycle = [
