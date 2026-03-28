@@ -14,6 +14,14 @@ export const getCycle = d => {
     return { l: 0, cycle: [0, 0] }
   }
 
+  /*
+    The algorithm below generates a cycle which starts and ends with city n - 1.
+    We would prefer a cycle which starts and ends with city 0.
+    So, rotate `d` so that city 0 is now at position n - 1:
+  */
+  d = [...d.slice(1), d[0]]
+  d = d.map(d2 => [...d2.slice(1), d2[0]])
+
   const all = (1 << (n - 1)) - 1
 
   /*
@@ -103,6 +111,9 @@ export const getCycle = d => {
   }
 
   cycle.unshift(n - 1)
+
+  // Finally, rotate city n - 1 back to position 0...
+  cycle = cycle.map(u => (u + 1) % n)
 
   return { l: bestL, cycle }
 }
