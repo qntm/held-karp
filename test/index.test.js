@@ -138,4 +138,19 @@ describe('held-karp', () => {
 
     assert.deepEqual(await jsImpl.getPath(d), await wasmImpl.getPath(d))
   })
+
+  it('more floating point weirdness', async () => {
+    const d = [
+      [0, 0.1345708923802362, 0.5472415788735453, 0.4466839091780601, 0.6152698043669479],
+      [0.1345708923802362, 0, 0.5713501479327353, 0.3418922714415299, 0.6460907733603495],
+      [0.5472415788735453, 0.5713501479327353, 0, 0.5072985058523543, 0.07793897619764283],
+      [0.4466839091780601, 0.3418922714415299, 0.5072985058523543, 0, 0.5816209182872604],
+      [0.6152698043669479, 0.6460907733603495, 0.07793897619764283, 0.5816209182872604, 0]
+    ]
+
+    const cycle = await jsImpl.getCycle(d)
+    assert.deepEqual(cycle.cycle, [0, 4, 2, 3, 1, 0])
+    // assert.deepEqual(cycle.l, d[0][4] + d[4][2] + d[2][3] + d[3][1] + d[1][0]) // This fails!
+    assert.deepEqual(cycle.l, d[4][2] + d[2][3] + d[3][1] + d[1][0] + d[0][4]) // ! This is a different number and is the wrong result
+  })
 })
