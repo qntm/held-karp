@@ -112,10 +112,14 @@ export const getCycle = d => {
 
   cycle.unshift(n - 1)
 
+  // Could just use `bestL` but this approach mirrors the WASM implementation
+  const l = cycle
+    .reduce((acc, u, i, cycle) => acc + d[u][cycle[i + 1 in cycle ? i + 1 : 0]], 0)
+
   // Finally, rotate city n - 1 back to position 0...
   cycle = cycle.map(u => (u + 1) % n)
 
-  return { l: bestL, cycle }
+  return { l, cycle }
 }
 
 export const getPath = d => {

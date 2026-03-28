@@ -62,9 +62,7 @@ export const getCycle = async d => {
     }
   }
 
-  wasmModule.instance.exports.doHK()
-  const bestU = wasmModule.instance.exports.getLastBestU()
-  const bestL = wasmModule.instance.exports.getLastBestL()
+  const bestU = wasmModule.instance.exports.doHK()
 
   // Read the cycle out of `prev` in memory
   let cycle = [n - 1]
@@ -80,10 +78,13 @@ export const getCycle = async d => {
 
   cycle.unshift(n - 1)
 
+  const l = cycle
+    .reduce((acc, u, i, cycle) => acc + d[u][cycle[i + 1 in cycle ? i + 1 : 0]], 0)
+
   // Finally, rotate city n - 1 back to position 0...
   cycle = cycle.map(u => (u + 1) % n)
 
-  return { l: bestL, cycle }
+  return { l, cycle }
 }
 
 export const getPath = async d => {
