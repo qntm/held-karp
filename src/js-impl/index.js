@@ -101,7 +101,7 @@ export const getCycle = d => {
     S = S2
   }
 
-  // Rotate so that we start and end at city 0
+  // Rotate so that we start at city 0
   const i = cycle.indexOf(0)
   cycle = [
     ...cycle.slice(i, cycle.length),
@@ -127,9 +127,11 @@ export const getPath = d => {
     )
   ])
 
-  // Eliminate new city 0 from the start of the cycle
-  // and bump the rest back down
-  const path = cycle.slice(1).map(u => u - 1)
+  const i = cycle.indexOf(0)
+  const path = [
+    ...cycle.slice(i + 1, cycle.length),
+    ...cycle.slice(0, i)
+  ].map(u => u - 1)
 
   return { l, path }
 }
