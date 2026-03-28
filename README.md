@@ -63,9 +63,13 @@ assert.deepEqual(getPath(degenerate), { l: 0, path: [0] })
 
 Returns `{ cycle, l }` where `cycle` is an optimal cycle consisting of *n* + 1 city numbers starting and ending with `0` and `l` is the length of the cycle.
 
+**Note**: Specifically, `getCycle` minimises the *accumulated floating point sum* of the distances between cities. Beware the usual floating point nonsense if `d` contains non-integers or if the accumulated sum exceeds `Number.MAX_SAFE_INTEGER`.
+
 #### getPath(d: number[][]): { path: number[], l: number }
 
 Similar to `getCycle`, but returns `{ path, l }` where `path` is an optimal path consisting of *n* city numbers, *not* necessarily starting or ending with `0`, and `l` is the length of the path. Again, if no path is possible, `l` will be `Infinity` and `path` should be discarded.
+
+**Note**: As with `getCycle`, `getPath` minimises the accumulated floating point sum of the distances between cities.
 
 ### WebAssembly implementation
 
