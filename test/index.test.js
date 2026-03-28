@@ -107,6 +107,19 @@ describe('held-karp', () => {
         assert.deepEqual(await impl.getCycle(cities), { l: 253, cycle: [0, 7, 4, 3, 9, 5, 2, 6, 1, 10, 8, 0] })
         assert.deepEqual(await impl.getPath(cities), { l: 160, path: [6, 1, 10, 2, 7, 8, 0, 4, 3, 5, 9] })
       })
+
+      it('floating point specificity', async () => {
+        const d = [
+          [0, 0.3527326873571947, 0.57869988271469, 0.5132750086065457],
+          [0.3527326873571947, 0, 0.5732297260711929, 0.6684951964858213],
+          [0.57869988271469, 0.5732297260711929, 0, 0.27218315217956607],
+          [0.5132750086065457, 0.6684951964858213, 0.27218315217956607, 0]
+        ]
+
+        const cycle = await impl.getCycle(d)
+        assert.deepEqual(cycle.cycle, [0, 3, 2, 1, 0])
+        assert.deepEqual(cycle.l, d[0][3] + d[3][2] + d[2][1] + d[1][0])
+      })
     })
   })
 
@@ -124,41 +137,5 @@ describe('held-karp', () => {
     )
 
     assert.deepEqual(await jsImpl.getPath(d), await wasmImpl.getPath(d))
-  })
-
-  it('floating point weirdness', async () => {
-    /*
-      This package is safe to use with integers whose sum is less than `Number.MAX_SAFE_INTEGER`.
-      For floating point, we can't be so assertive.
-      Floating point addition is not associative.
-      This means that the "optimal cycle" can be difficult to identify.
-      A cycle which in theory is longer can in practice compute to a smaller overall length.
-
-      Here, the route from cities
-        0 -> 1 -> 2 -> 3 -> 0
-      has length
-        (Number.MAX_SAFE_INTEGER + 1) + 2 + 0 + 0
-        This is computed correctly as 9007199254740994
-
-      While the route from cities
-        0 -> 1 -> 3 -> 2 -> 0
-      has length
-        (Number.MAX_SAFE_INTEGER + 1) + 1 + 1 + 1
-        This should be 9007199254740995 but in fact is computed as 9007199254740992
-        This is what gets returned
-
-      Without sacrificing performance, there is nothing that we can do about this.
-      We can specify it however.
-    */
-    const d = [
-      [0, Number.MAX_SAFE_INTEGER + 1, Infinity, Infinity],
-      [Infinity, 0, 2, 1],
-      [1, Infinity, 0, Infinity],
-      [0, Infinity, 1, Infinity]
-    ]
-    assert.deepEqual(jsImpl.getCycle(d), {
-      cycle: [0, 1, 3, 2, 0],
-      l: 9007199254740992
-    })
   })
 })

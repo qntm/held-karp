@@ -35,7 +35,7 @@ export const getCycle = async d => {
       n,
       memory
     },
-    console,
+    console
   })
 
   const lenPtr = 0
@@ -53,7 +53,9 @@ export const getCycle = async d => {
     }
   }
 
-  const bestU = wasmModule.instance.exports.doHK()
+  wasmModule.instance.exports.doHK()
+  const bestU = wasmModule.instance.exports.getLastBestU()
+  const bestL = wasmModule.instance.exports.getLastBestL()
 
   // Read the cycle out of `prev` in memory
   let cycle = [n - 1]
@@ -67,9 +69,6 @@ export const getCycle = async d => {
     S = S2
   }
 
-  const l = cycle
-    .reduce((acc, u, i, cycle) => acc + d[u][cycle[i + 1 in cycle ? i + 1 : 0]], 0)
-
   // Rotate so that we start and end at city 0
   const i = cycle.indexOf(0)
   cycle = [
@@ -78,7 +77,7 @@ export const getCycle = async d => {
     0
   ]
 
-  return { l, cycle }
+  return { l: bestL, cycle }
 }
 
 export const getPath = async d => {

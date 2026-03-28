@@ -12,6 +12,9 @@
   (global $n (mut i32) (i32.const 0))
   (global $nminus1 (mut i32) (i32.const 0))
 
+  (global $lastBestU (mut i32) (i32.const -1)) ;; for output
+  (global $lastBestL (mut f64) (f64.const inf)) ;; for output
+
   ;; memory locations
 
   (global $len_ptr i32 (i32.const 0)) ;; optimiser elides this
@@ -90,7 +93,7 @@
 
   ;; Actual work
 
-  (func $doHK (result f64)
+  (func $doHK
     (local $d_size i32)
     (local $len_size i32)
 
@@ -230,9 +233,22 @@
       br_if $u_loop
     )
 
-    (local.get $bestU)
+    ;; We need to return both of these
+    ;; but wasm has no mechanism, so stuff them into globals
+    (global.set $lastBestU (local.get $bestU))
+    (global.set $lastBestL (local.get $bestL))
+  )
+
+  (func $getLastBestU (result f64)
+    (global.get $lastBestU)
     f64.convert_i32_s
   )
 
+  (func $getLastBestL (result f64)
+    (global.get $lastBestL)
+  )
+
   (export "doHK" (func $doHK))
+  (export "getLastBestU" (func $getLastBestU))
+  (export "getLastBestL" (func $getLastBestL))
 )
