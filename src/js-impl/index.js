@@ -138,6 +138,8 @@ export const getPath = d => {
     )
   ])
 
+  // Eliminate new city 0 from the start and end of the cycle
+  // and bump the rest back down
   const path = cycle.slice(1, cycle.length - 1).map(u => u - 1)
 
   return { l, path }
