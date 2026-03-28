@@ -102,11 +102,7 @@ export const getPath = async d => {
     )
   ])
 
-  const i = cycle.indexOf(0)
-  const path = [
-    ...cycle.slice(i + 1, cycle.length - 1), // ignore redundant final element in cycle
-    ...cycle.slice(0, i)
-  ].map(u => u - 1)
+  const path = cycle.slice(1, cycle.length - 1).map(u => u - 1)
 
   return { l, path }
 }
