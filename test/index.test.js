@@ -15,28 +15,28 @@ describe('held-karp', () => {
       it('handles a degenerate case with 1 city', async () => {
         assert.deepEqual(await impl.getCycle([
           [0]
-        ]), { l: 0, cycle: [0] })
+        ]), { l: 0, cycle: [0, 0] })
       })
 
       it('handles a symmetric case with two cities', async () => {
         assert.deepEqual(await impl.getCycle([
           [0, 5],
           [5, 0]
-        ]), { l: 10, cycle: [0, 1] })
+        ]), { l: 10, cycle: [1, 0, 1] })
       })
 
       it('handles an asymmetric case with two cities', async () => {
         assert.deepEqual(await impl.getCycle([
           [0, 7],
           [6, 0]
-        ]), { l: 13, cycle: [0, 1] })
+        ]), { l: 13, cycle: [1, 0, 1] })
       })
 
       it('handles a case with two cities disconnected from one another, with no cycle possible', async () => {
         assert.deepEqual(await impl.getCycle([
           [0, Infinity],
           [Infinity, 0]
-        ]), { l: Infinity, cycle: [0, 1] })
+        ]), { l: Infinity, cycle: [1, 0, 1] })
       })
 
       it('handles a symmetric case with three cities', async () => {
@@ -44,7 +44,7 @@ describe('held-karp', () => {
           [0, 1, 65],
           [1, 0, 2],
           [65, 2, 0],
-        ]), { l: 68, cycle: [0, 2, 1] })
+        ]), { l: 68, cycle: [2, 1, 0, 2] })
       })
 
       it('handles an asymmetric case with three cities', async () => {
@@ -52,12 +52,12 @@ describe('held-karp', () => {
           [0, 1, 60],
           [60, 0, 1],
           [1, 60, 0],
-        ]), { l: 3, cycle: [0, 1, 2] })
+        ]), { l: 3, cycle: [2, 0, 1, 2] })
         assert.deepEqual(await impl.getCycle([
           [0, 60, 1],
           [1, 0, 60],
           [60, 1, 0],
-        ]), { l: 3, cycle: [0, 2, 1] })
+        ]), { l: 3, cycle: [2, 1, 0, 2] })
       })
 
       it('example from https://www.geeksforgeeks.org/traveling-salesman-problem-tsp-implementation/', async () => {
@@ -66,7 +66,7 @@ describe('held-karp', () => {
           [10, 0, 35, 25],
           [15, 35, 0, 30],
           [20, 25, 30, 0]
-        ]), { l: 80, cycle: [0, 1, 3, 2] })
+        ]), { l: 80, cycle: [3, 2, 0, 1, 3] })
       })
 
       it('asymmetric four-city case', async () => {
@@ -75,7 +75,7 @@ describe('held-karp', () => {
           [60, 0, 1, 60],
           [60, 60, 0, 1],
           [1, 60, 60, 0],
-        ]), { l: 4, cycle: [0, 1, 2, 3] })
+        ]), { l: 4, cycle: [3, 0, 1, 2, 3] })
       })
 
       it('example from https://stackoverflow.com/a/64795748 (n = 6)', async () => {
@@ -86,7 +86,7 @@ describe('held-karp', () => {
           [519, 455, 170, 0, 223, 428],
           [434, 375, 265, 223, 0, 273],
           [200, 164, 344, 428, 273, 0],
-        ]), { l: 1248, cycle: [0, 5, 4, 3, 2, 1] })
+        ]), { l: 1248, cycle: [5, 4, 3, 2, 1, 0, 5] })
       })
 
       it('example from https://stackoverflow.com/a/27195735 (n = 11)', async () => {
@@ -104,7 +104,7 @@ describe('held-karp', () => {
           [18, 12, 13, 25, 22, 37, 84, 13, 18, 38, 0],
         ]
 
-        assert.deepEqual(await impl.getCycle(cities), { l: 253, cycle: [0, 7, 4, 3, 9, 5, 2, 6, 1, 10, 8] })
+        assert.deepEqual(await impl.getCycle(cities), { l: 253, cycle: [10, 8, 0, 7, 4, 3, 9, 5, 2, 6, 1, 10] })
         assert.deepEqual(await impl.getPath(cities), { l: 160, path: [6, 1, 10, 2, 7, 8, 0, 4, 3, 5, 9] })
       })
 
@@ -117,8 +117,8 @@ describe('held-karp', () => {
         ]
 
         const cycle = await impl.getCycle(d)
-        assert.deepEqual(cycle.cycle, [0, 3, 2, 1])
-        assert.deepEqual(cycle.l, d[0][3] + d[3][2] + d[2][1] + d[1][0])
+        assert.deepEqual(cycle.cycle, [3, 2, 1, 0, 3])
+        assert.deepEqual(cycle.l, d[3][2] + d[2][1] + d[1][0] + d[0][3])
       })
 
       it('more floating point weirdness', async () => {
@@ -131,7 +131,7 @@ describe('held-karp', () => {
         ]
 
         const cycle = await impl.getCycle(d)
-        assert.deepEqual(cycle.cycle, [0, 4, 2, 3, 1])
+        assert.deepEqual(cycle.cycle, [4, 2, 3, 1, 0, 4])
         assert.deepEqual(cycle.l, d[4][2] + d[2][3] + d[3][1] + d[1][0] + d[0][4])
       })
     })

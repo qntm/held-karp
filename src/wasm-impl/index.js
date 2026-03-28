@@ -15,7 +15,8 @@ export const getCycle = async d => {
   const n = d.length
 
   if (n === 1) {
-    return { l: 0, cycle: [0] }
+    // ignore `d[0][0]`
+    return { l: 0, cycle: [0, 0] }
   }
 
   const lenSize = 2 ** (n - 1) * (n - 1) * BYTES_PER_FLOAT64 // for `len[S][k]`
@@ -69,12 +70,7 @@ export const getCycle = async d => {
     S = S2
   }
 
-  // Rotate so that we start at city 0
-  const i = cycle.indexOf(0)
-  cycle = [
-    ...cycle.slice(i, cycle.length),
-    ...cycle.slice(0, i)
-  ]
+  cycle.unshift(n - 1)
 
   return { l: bestL, cycle }
 }
@@ -97,7 +93,7 @@ export const getPath = async d => {
 
   const i = cycle.indexOf(0)
   const path = [
-    ...cycle.slice(i + 1, cycle.length),
+    ...cycle.slice(i + 1, cycle.length - 1), // ignore redundant final element in cycle
     ...cycle.slice(0, i)
   ].map(u => u - 1)
 
