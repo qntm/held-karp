@@ -15,8 +15,17 @@ export const getCycle = async d => {
   const n = d.length
 
   if (n === 1) {
+    // ignore `d[0][0]`
     return { l: 0, cycle: [0, 0] }
   }
+
+  /*
+    The algorithm below generates a cycle which starts and ends with city n - 1.
+    We would prefer a cycle which starts and ends with city 0.
+    So, rotate `d` so that city 0 is now at position n - 1:
+  */
+  d = [...d.slice(1), d[0]]
+  d = d.map(d2 => [...d2.slice(1), d2[0]])
 
   const lenSize = 2 ** (n - 1) * (n - 1) * BYTES_PER_FLOAT64 // for `len[S][k]`
   const dSize = n * n * BYTES_PER_FLOAT64 // for `d[u][v]`
@@ -35,7 +44,7 @@ export const getCycle = async d => {
       n,
       memory
     },
-    console,
+    console
   })
 
   const lenPtr = 0
@@ -67,16 +76,13 @@ export const getCycle = async d => {
     S = S2
   }
 
+  cycle.unshift(n - 1)
+
   const l = cycle
     .reduce((acc, u, i, cycle) => acc + d[u][cycle[i + 1 in cycle ? i + 1 : 0]], 0)
 
-  // Rotate so that we start and end at city 0
-  const i = cycle.indexOf(0)
-  cycle = [
-    ...cycle.slice(i, cycle.length),
-    ...cycle.slice(0, i),
-    0
-  ]
+  // Finally, rotate city n - 1 back to position 0...
+  cycle = cycle.map(u => (u + 1) % n)
 
   return { l, cycle }
 }
@@ -99,7 +105,7 @@ export const getPath = async d => {
 
   // Eliminate new city 0 from the start and end of the cycle
   // and bump the rest back down
-  const path = cycle.slice(1, cycle.length - 1).map(k => k - 1)
+  const path = cycle.slice(1, cycle.length - 1).map(u => u - 1)
 
   return { l, path }
 }

@@ -66,7 +66,7 @@ describe('held-karp', () => {
           [10, 0, 35, 25],
           [15, 35, 0, 30],
           [20, 25, 30, 0]
-        ]), { l: 80, cycle: [0, 1, 3, 2, 0] })
+        ]), { l: 80, cycle: [0, 2, 3, 1, 0] })
       })
 
       it('asymmetric four-city case', async () => {
@@ -104,8 +104,45 @@ describe('held-karp', () => {
           [18, 12, 13, 25, 22, 37, 84, 13, 18, 38, 0],
         ]
 
-        assert.deepEqual(await impl.getCycle(cities), { l: 253, cycle: [0, 7, 4, 3, 9, 5, 2, 6, 1, 10, 8, 0] })
-        assert.deepEqual(await impl.getPath(cities), { l: 160, path: [6, 1, 10, 2, 7, 8, 0, 4, 3, 5, 9] })
+        assert.deepEqual(await impl.getCycle(cities), { l: 253, cycle: [0, 8, 10, 1, 6, 2, 5, 9, 3, 4, 7, 0] })
+        assert.deepEqual(await impl.getPath(cities), { l: 160, path: [9, 5, 3, 4, 0, 8, 7, 2, 10, 1, 6] })
+      })
+
+      describe('floating point weirdness', async () => {
+        it('specificity', async () => {
+          const d = [
+            [0, 0.3527326873571947, 0.57869988271469, 0.5132750086065457],
+            [0.3527326873571947, 0, 0.5732297260711929, 0.6684951964858213],
+            [0.57869988271469, 0.5732297260711929, 0, 0.27218315217956607],
+            [0.5132750086065457, 0.6684951964858213, 0.27218315217956607, 0]
+          ]
+
+          const cycle = await impl.getCycle(d)
+          assert.deepEqual(cycle.cycle, [0, 3, 2, 1, 0])
+          assert.deepEqual(cycle.l, d[3][2] + d[2][1] + d[1][0] + d[0][3])
+
+          const path = await impl.getPath(d)
+          assert.deepEqual(path.path, [2, 3, 0, 1])
+          assert.deepEqual(path.l, d[2][3] + d[3][0] + d[0][1])
+        })
+
+        it('more', async () => {
+          const d = [
+            [0, 0.1345708923802362, 0.5472415788735453, 0.4466839091780601, 0.6152698043669479],
+            [0.1345708923802362, 0, 0.5713501479327353, 0.3418922714415299, 0.6460907733603495],
+            [0.5472415788735453, 0.5713501479327353, 0, 0.5072985058523543, 0.07793897619764283],
+            [0.4466839091780601, 0.3418922714415299, 0.5072985058523543, 0, 0.5816209182872604],
+            [0.6152698043669479, 0.6460907733603495, 0.07793897619764283, 0.5816209182872604, 0]
+          ]
+
+          const cycle = await impl.getCycle(d)
+          assert.deepEqual(cycle.cycle, [0, 4, 2, 3, 1, 0])
+          assert.deepEqual(cycle.l, d[0][4] + d[4][2] + d[2][3] + d[3][1] + d[1][0])
+
+          const path = await impl.getPath(d)
+          assert.deepEqual(path.path, [4, 2, 3, 1, 0])
+          assert.deepEqual(path.l, d[4][2] + d[2][3] + d[3][1] + d[1][0])
+        })
       })
     })
   })
