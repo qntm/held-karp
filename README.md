@@ -37,8 +37,8 @@ const cities = [
   [31, 41, 27, 13, 16, 3, 99, 25, 35, 0, 38],
   [18, 12, 13, 25, 22, 37, 84, 13, 18, 38, 0],
 ]
-assert.deepEqual(getCycle(cities), { l: 253, cycle: [0, 7, 4, 3, 9, 5, 2, 6, 1, 10, 8, 0] })
-assert.deepEqual(getPath(cities), { l: 160, path: [6, 1, 10, 2, 7, 8, 0, 4, 3, 5, 9] })
+assert.deepEqual(getCycle(cities), { l: 253, cycle: [0, 8, 10, 1, 6, 2, 5, 9, 3, 4, 7, 0] })
+assert.deepEqual(getPath(cities), { l: 160, path: [9, 5, 3, 4, 0, 8, 7, 2, 10, 1, 6] })
 
 // two cities disconnected from one another,
 // no cycle is possible
@@ -63,7 +63,15 @@ assert.deepEqual(getPath(degenerate), { l: 0, path: [0] })
 
 Returns `{ cycle, l }` where `cycle` is an optimal cycle consisting of *n* + 1 city numbers starting and ending with `0` and `l` is the length of the cycle.
 
-**Note**: Specifically, `getCycle` minimises the *accumulated floating point sum* of the distances between cities. Beware the usual floating point nonsense if `d` contains non-integers or if the accumulated sum exceeds `Number.MAX_SAFE_INTEGER`.
+**Note**: Specifically, `getCycle` minimises the *accumulated floating point sum* of the distances between cities; the distances are:
+
+```js
+const distances = cycle
+  .slice(0, -1)
+  .map((u, i) => d[u][cycle[i + 1]])
+```
+
+and `l` is exactly `distances.reduce((acc, x) => acc + x, 0)`). Beware the usual floating point nonsense if `d` contains non-integers or if the accumulated sum exceeds `Number.MAX_SAFE_INTEGER`. `l` is *not* necessarily equal to `Math.sumPrecise(distances)`.
 
 #### getPath(d: number[][]): { path: number[], l: number }
 
