@@ -63,7 +63,7 @@ assert.deepEqual(getPath(degenerate), { l: 0, path: [0] })
 
 Returns `{ cycle, l }` where `cycle` is an optimal cycle consisting of *n* + 1 city numbers starting and ending with `0` and `l` is the length of the cycle.
 
-**Note**: Specifically, `getCycle` minimises the *accumulated floating point sum* of the distances between cities; the distances are:
+**Note**: Specifically, `getCycle` minimises the *accumulated floating point sum* of the distances between cities, starting and ending with city `0`; the distances are:
 
 ```js
 const distances = cycle
@@ -71,7 +71,7 @@ const distances = cycle
   .map((u, i) => d[u][cycle[i + 1]])
 ```
 
-and `l` is exactly `distances.reduce((acc, x) => acc + x, 0)`). Beware the usual floating point nonsense if `d` contains non-integers or if the accumulated sum exceeds `Number.MAX_SAFE_INTEGER`. `l` is *not* necessarily equal to `Math.sumPrecise(distances)`.
+and `l` is exactly `distances.reduce((acc, x) => acc + x, 0)`). If `d` contains non-integers or if the accumulated sum exceeds `Number.MAX_SAFE_INTEGER`, beware the usual floating point nonsense. For example, `l` will not necessarily equal `Math.sumPrecise(distances)`, and it may be possible to obtain different results for `l` by rotating `d` so that a different city is at position `0`.
 
 #### getPath(d: number[][]): { path: number[], l: number }
 
